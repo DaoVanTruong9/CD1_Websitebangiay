@@ -100,7 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/products/store', [ProductController::class, 'store'])
         ->middleware('role:admin');
 
-    Route::get('/products/delete/{id}', [ProductController::class, 'delete'])
+    Route::delete('/products/delete/{id}', [ProductController::class, 'delete'])
         ->middleware('role:admin');
     Route::post('/products/update/{id}', [ProductController::class,'update']);    
         
@@ -129,5 +129,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/staff/promotion/apply/{id}', [ProductController::class, 'applyPromotion']);
 
     });
+
+    Route::get('/san-pham', [ProductController::class, 'userProducts']);
 
 });

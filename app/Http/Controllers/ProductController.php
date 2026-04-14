@@ -7,41 +7,37 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function shop()
+    public function shop(Request $request)
     {
         $products = Product::all();
         return view('shop', compact('products'));
-        if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('products','public');
-        }
     }
 
-public function index(Request $request)
-{
-    $search = $request->search;
+    public function index(Request $request)
+    {
+        $search = $request->search;
 
-    $products = Product::where('is_sale', 1)
-        ->when($search, function ($q) use ($search) {
+        $products = Product::when($search, function ($q) use ($search) {
             $q->where(function ($sub) use ($search) {
                 $sub->where('name', 'like', "%$search%")
                     ->orWhere('brand', 'like', "%$search%");
-            });
-        })
-        ->orderBy('id', 'asc')
-        ->get();
+                }); 
+            })
+            ->orderBy('id', 'asc')
+            ->get();
 
-    $featured = Product::where('is_featured', 1)
-        ->when($search, function ($q) use ($search) {
-            $q->where(function ($sub) use ($search) {
-                $sub->where('name', 'like', "%$search%")
-                    ->orWhere('brand', 'like', "%$search%");
-            });
-        })
-        ->orderBy('id', 'asc')
-        ->get();
+        $featured = Product::where('is_featured', 1)
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%$search%")
+                        ->orWhere('brand', 'like', "%$search%");
+                });
+            })
+            ->orderBy('id', 'asc')
+            ->get();
 
-    return view('user.index', compact('products', 'featured'));
-}
+        return view('products.index', compact('products', 'featured'));
+    }
 
     public function store(Request $request)
     {
@@ -57,19 +53,20 @@ public function index(Request $request)
     Product::create([
         'name' => $request->name,
         'brand' => $request->brand,
+        'size' => $request->size ? implode(',', $request->size) . ',' : null,
         'price' => $request->price,
         'image' => $request->image,
         'is_sale' => $is_sale,
         'is_featured' => $is_featured,
     ]);
 
-    return back();
+    return back()->with('success', 'Thêm sản phẩm thành công');
 }
 
     public function delete($id)
     {
-        \App\Models\Product::find($id)->delete();
-        return redirect('/products');
+        Product::find($id)->delete();
+        return back()->with('success', 'Xóa sản phẩm thành công');
     }
     
     public function update(Request $request, $id)
@@ -88,13 +85,14 @@ public function index(Request $request)
     $p->update([
         'name' => $request->name,
         'brand' => $request->brand,
+        'size' => $request->size ? implode(',', $request->size) . ',' : null,
         'price' => $request->price,
         'image' => $request->image,
         'is_sale' => $is_sale,
         'is_featured' => $is_featured,
     ]);
 
-    return back();
+    return back()->with('success', 'Cập nhật sản phẩm thành công!');
 }
 
     public function inventory()
@@ -120,4 +118,47 @@ public function index(Request $request)
 
         return back()->with('success', 'Đã áp dụng khuyến mãi');
     }
+
+    public function userProducts(Request $request)
+{
+    $query = Product::query();
+
+    // 🔍 SEARCH
+    if ($request->search) {
+        $query->where('name', 'like', '%' . $request->search . '%');
+    }
+
+    // 🏷️ FILTER BRAND
+    if ($request->brand) {
+        $query->whereIn('brand', $request->brand);
+    }
+
+    // 💰 FILTER PRICE
+    if ($request->min_price) {
+        $query->where('price', '>=', $request->min_price);
+    }
+
+    if ($request->max_price) {
+        $query->where('price', '<=', $request->max_price);
+    }
+
+    // 👟 FILTER SIZE
+    if ($request->size) {
+    $query->where(function ($q) use ($request) {
+        foreach ($request->size as $size) {
+            $q->orWhere('size', 'like', "%,$size,%")
+              ->orWhere('size', 'like', "$size,%")
+              ->orWhere('size', 'like', "%,$size")
+              ->orWhere('size', '=', "$size");
+        }
+    });
+}
+
+    $products = $query->latest()->paginate(12);
+
+    // giữ query khi phân trang
+    $products->appends($request->all());
+
+    return view('user.products', compact('products'));
+}
 }

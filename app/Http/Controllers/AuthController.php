@@ -38,7 +38,7 @@ class AuthController extends Controller
     ])){
         $request->session()->regenerate();
 
-        // 🔥 PHÂN QUYỀN TẠI ĐÂY
+        // PHÂN QUYỀN
         $role = Auth::user()->role;
 
         if($role == 'admin'){
@@ -65,7 +65,7 @@ class AuthController extends Controller
         'password' => 'required|min:6'
     ]);
 
-    // 🔥 PHÂN QUYỀN TẠI ĐÂY
+    //PHÂN QUYỀN
     $role = $request->email === 'admin@gmail.com' ? 'admin' : 'user';
 
     \App\Models\User::create([

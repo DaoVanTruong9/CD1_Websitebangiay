@@ -3,19 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-
-    <!-- @if(Auth::user()->role == 'admin')
-        <a href="/products">👟 Quản lý sản phẩm</a>
-        <a href="/orders">📦 Quản lý đơn hàng</a>
-    @endif
-
-    @if(Auth::user()->role == 'staff')
-        <a href="/orders">📦 Xử lý đơn hàng</a>
-    @endif
-
-    @if(Auth::user()->role == 'user')
-        <a href="/">🛒 Mua hàng</a>
-    @endif -->
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -26,8 +13,6 @@
         body {
             margin: 0;
         }
-
-        /* Header */
         .header {
             height: 60px;
             background: #0b6fc7;
@@ -37,8 +22,6 @@
             padding: 0 20px;
             font-weight: bold;
         }
-
-        /* Sidebar */
         .sidebar {
             width: 250px;
             height: 100vh;
@@ -46,7 +29,6 @@
             color: white;
             position: fixed;
         }
-
         .sidebar a {
             color: white;
             display: block;
@@ -57,13 +39,16 @@
         .sidebar a:hover {
             background: #444;
         }
+        .sidebar a.active {
+            background: #000;
+            font-weight: bold;
+            border-left: 4px solid #0b6fc7;
+        }
 
         .submenu {
             padding-left: 20px;
             display: none;
         }
-
-        /* Content */
         .content {
             margin-left: 250px;
             padding: 20px;
@@ -85,36 +70,54 @@
 </head>
 
 <body>
-
-<!-- HEADER -->
-<div class="header">
-    ADMIN SHOP GIÀY
-</div>
+<div class="header">ADMIN SHOP GIÀY</div>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-    <a href="/dashboard">🏠 Dashboard</a>
+    <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+    🏠 Dashboard
+</a>
 
-    <a href="/products">👟 Quản lý sản phẩm</a>
+<a href="/products" class="{{ request()->is('products*') ? 'active' : '' }}">
+    👟 Quản lý sản phẩm
+</a>
 
-    <a href="/orders">📦 Quản lý đơn hàng</a>
+<a href="/orders" class="{{ request()->is('orders*') ? 'active' : '' }}">
+    📦 Quản lý đơn hàng
+</a>
 
-    <a href="#">👤 Quản lý khách hàng</a>
+<a href="#" class="{{ request()->is('customers*') ? 'active' : '' }}">
+    👤 Quản lý khuyến mãi
+</a>
 
-    <a href="#">🔐 Quản lý tài khoản</a>
+<a href="#" class="{{ request()->is('users*') ? 'active' : '' }}">
+    🔐 Quản lý tài khoản
+</a>
 
-    <a href="#" onclick="toggleMenu()">📊 Báo cáo</a>
-    <div class="submenu" id="submenu">
-        <a href="#">- Doanh thu</a>
-        <a href="#">- Sản phẩm bán chạy</a>
-    </div>
+   <a href="#" onclick="toggleMenu()" 
+   class="{{ request()->is('report*') ? 'active' : '' }}">
+   📊 Báo cáo
+</a>
+
+<div class="submenu" id="submenu"
+     style="{{ request()->is('report*') ? 'display:block' : 'display:none' }}">
+
+    <a href="/report/revenue" 
+       class="{{ request()->is('report/revenue') ? 'active' : '' }}">
+        - Doanh thu
+    </a>
+
+    <a href="/report/top-product" 
+       class="{{ request()->is('report/top-product') ? 'active' : '' }}">
+        - Sản phẩm bán chạy
+    </a>
+</div>
 
     <form method="POST" action="/logout">
     @csrf
     <button class="btn btn-danger w-100 mt-2">🚪 Đăng xuất</button>
     </form>
-
 </div>
 
 <!-- CONTENT -->
@@ -127,21 +130,21 @@
         <div class="col-md-3">
             <div class="card-box bg-pink">
                 Đơn hàng
-                <h3>125</h3>
+                <h3></h3>
             </div>
         </div>
 
         <div class="col-md-3">
             <div class="card-box bg-blue">
                 Sản phẩm
-                <h3>257</h3>
+                <h3></h3>
             </div>
         </div>
 
         <div class="col-md-3">
             <div class="card-box bg-green">
                 Khách hàng
-                <h3>243</h3>
+                <h3></h3>
             </div>
         </div>
 

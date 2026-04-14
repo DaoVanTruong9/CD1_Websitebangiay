@@ -12,12 +12,12 @@
 
     <style>
         body {
-            background: #f5f5f5;
+            background: #45c8ed;
         }
 
         /* NAVBAR */
         .navbar {
-            background: #fff;
+            background: #0c0000;
             padding: 15px 0;
         }
 
@@ -67,7 +67,14 @@
             text-align: center;
             cursor: pointer;
         }
-
+        .category a.active {
+            color: #0b6fc7;
+            font-weight: bold;
+        }
+        .category a:hover {
+            transform: scale(1.05);
+            transition: 0.2s;
+        }
         /* PRODUCT */
         .product-card {
             background: #fff;
@@ -75,28 +82,46 @@
             padding: 10px;
             transition: 0.3s;
             height: 100%;
+            cursor: pointer;
         }
 
+        .product-card .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+
+            opacity: 0;
+            transition: 0.3s;
+        }
         .product-card:hover {
             transform: translateY(-5px);
         }
-
+        .product-card:hover .overlay {
+            opacity: 1;
+        }
         .product-card img {
             transform: scale(1.05);
             transition: 0.3s;
+            width: 100%;
+            display: block;
         }
 
         .product-card:hover img {
             transform: scale(1.05);
         }
-
+        .product-card .badge {
+            z-index: 10;
+        }
         .price {
             color: red;
             font-weight: bold;
         }
 
         .badge-sale {
-            position: relative;
+            position: absolute;
             top: 10px;
             left: 10px;
             background: red;
@@ -104,31 +129,30 @@
             font-size: 12px;
             padding: 3px 6px;
             border-radius: 5px;
+            z-index: 10;
         }
         .nav-link {
-    transition: 0.3s;
-}
+            transition: 0.3s;
+        }
 
-.nav-link:hover {
-    color: red !important;
-    transform: translateY(-2px);
-}
+        .nav-link:hover {
+            color: red !important;
+            transform: translateY(-2px);
+        }
 
-.dropdown-menu a:hover {
-    background: #f8f9fa;
-}
+        .dropdown-menu a:hover {
+            background: #f8f9fa;
+        }
 
-input.form-control:focus {
-    box-shadow: none;
-    border-color: red;
-}
+        input.form-control:focus {
+            box-shadow: none;
+            border-color: red;
+        }
     </style>
 </head>
 
 <body>
-
 <div class="container">
-
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg bg-white shadow-sm px-3 py-2">
     <div class="container-fluid">
@@ -145,7 +169,7 @@ input.form-control:focus {
                     <a class="nav-link active fw-bold text-danger" href="/">Trang chủ</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Sản phẩm</a>
+                    <a class="nav-link" href="/san-pham">Sản phẩm</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">Lịch sử</a>
@@ -197,7 +221,7 @@ input.form-control:focus {
 </nav>
 
     <!-- BANNER -->
-    <div id="bannerCarousel" class="carousel slide banner-slide mt-3" data-bs-ride="carousel">
+    <div id="bannerCarousel" class="carousel slide banner-slide mt-3" data-bs-ride="carousel" data-bs-interval="2500">
         <div class="carousel-inner">
 
             <div class="carousel-item active">
@@ -224,13 +248,27 @@ input.form-control:focus {
     </div>
 
     <!-- CATEGORY -->
-    <div class="category shadow-sm">
-        <div><i class="fa fa-layer-group"></i><br>Bộ sưu tập</div>
-        <div><i class="fa fa-shoe-prints"></i><br>Nike</div>
-        <div><i class="fa fa-female"></i><br>Adidas</div>
-        <div><i class="fa fa-running"></i><br>Mizuno</div>
-    </div>
+    <div class="category shadow-sm d-flex justify-content-around text-center py-3">
+    <a href="/san-pham" class="text-decoration-none text-dark">
+        <i class="fa fa-layer-group"></i><br>
+        <span>Bộ sưu tập</span>
+    </a>
 
+    <a href="/san-pham?brand[]=Nike" class="text-decoration-none text-dark">
+        <i class="fa fa-shoe-prints"></i><br>
+        <span>Nike</span>
+    </a>
+
+    <a href="/san-pham?brand[]=Adidas" class="text-decoration-none text-dark">
+        <i class="fa fa-female"></i><br>
+        <span>Adidas</span>
+    </a>
+
+    <a href="/san-pham?brand[]=Mizuno" class="text-decoration-none text-dark">
+        <i class="fa fa-running"></i><br>
+        <span>Mizuno</span>
+    </a>
+    </div>
     <!-- PRODUCT -->
     <div class="mt-5">
         <h4 class="text-center mt-5 fw-bold">
@@ -239,31 +277,136 @@ input.form-control:focus {
     @else
         Sản phẩm khuyến mãi
     @endif
-</h4>
+        </h4>
+    <div class="row mt-4">
+        @foreach($products as $p)
+        <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
+            <div class="product-card position-relative shadow-sm overflow-hidden">
+                @if($p->is_sale==1)
+                    <span class="badge bg-danger position-absolute m-2">SALE</span>
+                @endif
 
-        <div class="row mt-4">
-
-            @foreach($products as $p)
-            <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
-                <div class="product-card position-relative shadow-sm">
-
-                    <span class="badge-sale">SALE</span>
-
+                <!-- IMAGE -->
+                <div class="position-relative">
                     <img src="{{ asset('images/' .$p->image) }}"
-                         class="img-fluid"
-                         onerror="this.src='{{ asset('images/anh_login.png') }}'">
+                        class="img-fluid"
+                        style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
 
-                    <div class="mt-2">
-                        <small>{{ $p->name }}</small>
-                        <div class="price">{{ number_format($p->price) }} đ</div>
+                    <!-- HOVER -->
+                    <div class="overlay d-flex justify-content-center align-items-center">
+
+                    <!-- Modal button -->
+                    <button class="btn btn-light mx-1"
+                        data-bs-toggle="modal"
+                        data-bs-target="#productModal{{ $p->id }}">
+                    <i class="fa fa-eye"></i>
+                    </button>
+
+                <!-- THÊM GIỎ -->
+                <a href="/cart/add/{{ $p->id }}" class="btn btn-danger mx-1">
+                    <i class="fa fa-shopping-cart"></i>
+                </a>
+
+            </div>
+        </div>
+        <!-- INFO -->
+        <div class="mt-2 text-center">
+            <small>{{ $p->name }}</small>
+            <div class="price text-danger fw-bold">
+                {{ number_format($p->price) }} đ
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="productModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+                <h5 class="modal-title">{{ $p->name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+                <div class="row">
+
+                    <!-- IMAGE -->
+                    <div class="col-md-6 text-center">
+                        <img src="{{ asset('images/' .$p->image) }}"
+                             class="img-fluid rounded"
+                             style="max-height:300px; object-fit:cover;">
                     </div>
 
+                    <!-- INFO -->
+                    <div class="col-md-6">
+
+                        <p><b>Mã SP:</b> SP{{ $p->id }}</p>
+
+                        <p>
+                            <b>Tình trạng:</b>
+                            @if($p->stock > 0)
+                                <span class="text-success">Còn hàng</span>
+                            @else
+                                <span class="text-danger">Hết hàng</span>
+                            @endif
+                        </p>
+
+                        <p class="text-danger fs-5 fw-bold">
+                            {{ number_format($p->price) }} đ
+                        </p>
+
+                        <!-- COLOR -->
+                        <div class="mb-2">
+                            <label><b>Màu:</b></label>
+                            <select class="form-select">
+                                <option>Đen</option>
+                                <option>Trắng</option>
+                                <option>Xanh</option>
+                            </select>
+                        </div>
+
+                        <!-- SIZE -->
+                        <div class="mb-2">
+                            <label><b>Size:</b></label>
+                            <select class="form-select">
+    @                           @if($p->size)
+                                    @foreach(explode(',', $p->size) as $s)
+                                        <option>{{ trim($s) }}</option>
+                                    @endforeach
+                                @else
+                                    <option> Không có size </option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- QUANTITY -->
+                        <div class="mb-3">
+                            <label><b>Số lượng:</b></label>
+                            <input type="number" value="1" min="1" class="form-control">
+                        </div>
+
+                        <!-- ADD CART -->
+                        <a href="/cart/add/{{ $p->id }}" class="btn btn-danger w-100">
+                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                        </a>
+
+                    </div>
                 </div>
             </div>
-            @endforeach
 
         </div>
     </div>
+</div>
+@endforeach
+
+        </div>
+    </div>
+
     <div class="mt-5">
     @if(!request('search') && $featured->isNotEmpty())
     <h4 class="text-center fw-bold mt-5">Sản phẩm nổi bật</h4>
@@ -272,23 +415,128 @@ input.form-control:focus {
 
         @foreach($featured as $p)
         <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
-            <div class="product-card position-relative shadow-sm">
 
-                <img src="{{ asset('images/' .$p->image) }}"
-                     class="img-fluid"
-                     onerror="this.src='{{ asset('images/anh_login.png') }}'">
+            <div class="product-card position-relative shadow-sm overflow-hidden">
 
-                <div class="mt-2">
-                    <small>{{ $p->name }}</small>
-                    <div class="price">{{ number_format($p->price) }} đ</div>
-                </div>
+            <div class="position-relative">
+            <img src="{{ asset('images/' .$p->image) }}"
+                 class="img-fluid"
+                 style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
+            <!-- HOVER -->
+            <div class="overlay d-flex justify-content-center align-items-center">
+
+                <!-- MODAL BUTTON -->
+                <button class="btn btn-light mx-1"
+                        data-bs-toggle="modal"
+                        data-bs-target="#productModal{{ $p->id }}">
+                    <i class="fa fa-eye"></i>
+                </button>
+
+                <!-- CART -->
+                <a href="/cart/add/{{ $p->id }}" class="btn btn-danger mx-1">
+                    <i class="fa fa-shopping-cart"></i>
+                </a>
 
             </div>
         </div>
-        @endforeach
+
+        <!-- INFO -->
+        <div class="mt-2 text-center">
+            <small>{{ $p->name }}</small>
+            <div class="price text-danger fw-bold">
+                {{ number_format($p->price) }} đ
+            </div>
+        </div>
 
     </div>
-    @endif
+
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="modal fade" id="productModal{{ $p->id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+                <h5 class="modal-title">{{ $p->name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+                <div class="row">
+
+                    <!-- IMAGE -->
+                    <div class="col-md-6 text-center">
+                        <img src="{{ asset('images/' .$p->image) }}"
+                             class="img-fluid rounded"
+                             style="max-height:300px; object-fit:cover;">
+                    </div>
+
+                    <!-- INFO -->
+                    <div class="col-md-6">
+
+                        <p><b>Mã SP:</b> SP{{ $p->id }}</p>
+
+                        <p>
+                            <b>Tình trạng:</b>
+                            @if($p->stock > 0)
+                                <span class="text-success">Còn hàng</span>
+                            @else
+                                <span class="text-danger">Hết hàng</span>
+                            @endif
+                        </p>
+
+                        <p class="text-danger fs-5 fw-bold">
+                            {{ number_format($p->price) }} đ
+                        </p>
+
+                        <!-- COLOR -->
+                        <div class="mb-2">
+                            <label><b>Màu:</b></label>
+                            <select class="form-select">
+                                <option>Đen</option>
+                                <option>Trắng</option>
+                                <option>Xanh</option>
+                            </select>
+                        </div>
+
+                        <!-- SIZE -->
+                        <div class="mb-2">
+                            <label><b>Size:</b></label>
+                            <select class="form-select">
+                                @if($p->size)
+                                    @foreach(explode(',', $p->size) as $s)
+                                        <option>{{ trim($s) }}</option>
+                                    @endforeach
+                                @else
+                                    <option>Không có size</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- QUANTITY -->
+                        <div class="mb-3">
+                            <label><b>Số lượng:</b></label>
+                            <input type="number" value="1" min="1" class="form-control">
+                        </div>
+
+                        <!-- ADD CART -->
+                        <a href="/cart/add/{{ $p->id }}" class="btn btn-danger w-100">
+                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+@endforeach
+    </div>
+@endif
 </div>
 <div class="mt-5">
     <h4 class="text-center fw-bold">Chọn theo Vị trí - Phong cách</h4>
@@ -327,7 +575,7 @@ input.form-control:focus {
 
         <div class="col-md-4">
             <div class="card shadow-sm">
-                <img src="{{ asset('images/news1.png') }}" class="img-fluid">
+                <img src="{{ asset('images/anh_tintuc1.png') }}" class="img-fluid">
                 <div class="p-3">
                     <h6>Xu hướng giày thể thao 2026</h6>
                     <small>Giày sneaker đang trở lại mạnh mẽ...</small>
@@ -337,7 +585,7 @@ input.form-control:focus {
 
         <div class="col-md-4">
             <div class="card shadow-sm">
-                <img src="{{ asset('images/news2.png') }}" class="img-fluid">
+                <img src="{{ asset('images/anh_tintuc2.png') }}" class="img-fluid">
                 <div class="p-3">
                     <h6>Cách chọn giày phù hợp</h6>
                     <small>Chọn giày theo dáng chân cực quan trọng...</small>
@@ -347,7 +595,7 @@ input.form-control:focus {
 
         <div class="col-md-4">
             <div class="card shadow-sm">
-                <img src="{{ asset('images/news3.png') }}" class="img-fluid">
+                <img src="{{ asset('images/anh_tintuc3.png') }}" class="img-fluid">
                 <div class="p-3">
                     <h6>Bảo quản giày đúng cách</h6>
                     <small>Giữ giày luôn mới như ngày đầu...</small>
