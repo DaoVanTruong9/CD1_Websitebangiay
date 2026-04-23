@@ -85,16 +85,16 @@
 <div class="header">QUẢN LÝ SẢN PHẨM</div>
 
 <div class="sidebar">
-    <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+    <a href="/admin/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
     🏠 Dashboard
 </a>
 
-<a href="/products" class="{{ request()->is('products*') ? 'active' : '' }}">
+<a href="/admin/products" class="{{ request()->is('products*') ? 'active' : '' }}">
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/orders" class="{{ request()->is('orders*') ? 'active' : '' }}">
-    📦 Quản lý đơn hàng
+<a href="/admin/inventory" class="{{ request()->is('orders*') ? 'active' : '' }}">
+    📦 Quản lý nhập hàng
 </a>
 
 <a href="#" class="{{ request()->is('customers*') ? 'active' : '' }}">
@@ -133,7 +133,7 @@
             <th>Hình</th>
             <th>Tên</th>
             <th>Giá</th>
-            <th>Size</th> <!-- 👈 thêm -->
+            <th>Size</th>
             <th>Thuộc mục</th>
             <th>Ngày</th>
             <th>Hành động</th>

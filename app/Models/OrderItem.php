@@ -10,11 +10,13 @@ class OrderItem extends Model
     'order_id',
     'product_id',
     'quantity',
-    'price'
+    'price',
+    'size'
 ];
 
+public $timestamps = false;
 public function product()
 {
-    return $this->belongsTo(Product::class);
+    return $this->belongsTo(Product::class, 'product_id');
 }
 }

@@ -1,14 +1,21 @@
 <?php
 
+namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\ImportController;
+use App\Models\Inventory;
 
 /*
 |--------------------------------------------------------------------------
-| KHÔNG CẦN LOGIN
+| PUBLIC (KHÔNG LOGIN)
 |--------------------------------------------------------------------------
 */
 
@@ -20,32 +27,16 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Route::get('/', [ProductController::class, 'shop']);
-
 /*
 |--------------------------------------------------------------------------
-| CẦN LOGIN
+| AUTH (ĐÃ LOGIN)
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+Route::get('/san-pham', [ProductController::class, 'userProducts']);
 
-    // ================= DASHBOARD =================
 
-    // ADMIN
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->middleware('role:admin');
-
-    // STAFF
-    Route::get('/staff/dashboard', function () {
-        return view('staff.dashboard');
-    })->middleware('role:staff');
-
-    // USER (có thể bỏ vì user về trang / rồi)
-    Route::get('/user/home', function () {
-        return redirect('/');
-    })->middleware('role:user');
+// Route::middleware('auth')->group(function () {
 
     // ================= LOGOUT =================
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -55,81 +46,89 @@ Route::middleware('auth')->group(function () {
     | USER
     |--------------------------------------------------------------------------
     */
-    Route::post('/checkout', [OrderController::class, 'checkout'])
-        ->middleware('role:user');
+    Route::middleware(['auth','role:user'])->group(function () {      
+        // Cart
+        Route::get('/cart', [CartController::class, 'index']);
+        Route::get('/cart/mini', [CartController::class, 'miniCart']);
+        Route::post('/cart/add', [CartController::class, 'add']);
+        Route::post('/cart/update', [CartController::class, 'updateQty']);
+        Route::post('/cart/remove', [CartController::class, 'removeAjax']);
+        Route::post('/cart/update-qty', [CartController::class, 'updateQty']);
+        Route::post('/cart/remove-mini', [CartController::class, 'removeMini']);
+        // Checkout
+        Route::get('/checkout', [CartController::class, 'checkoutPage']);
+        Route::post('/checkout', [OrderController::class, 'checkout']);
+
+        // Orders
+        Route::get('/orders/my', [OrderController::class, 'myOrders']);
+        Route::post('/orders/mark-paid/{id}', [OrderController::class, 'markPaid'])->middleware('auth');
+        Route::post('/orders/received/{id}', [OrderController::class, 'markReceived'])->middleware('auth');
+        Route::get('/orders/history', [OrderController::class, 'history']);
+
+        // Payment
+        Route::get('/payment/bank/{id}', [OrderController::class, 'bankPayment']);
+        Route::get('/payment/qr/{id}', [OrderController::class, 'qrPayment']);
+        Route::get('/payment/success/{id}', [OrderController::class, 'paymentSuccess']);
+
+        Route::post('/review/store', [ReviewController::class, 'store']);
+    });
 
     /*
     |--------------------------------------------------------------------------
-    | STAFF + ADMIN
+    | STAFF
     |--------------------------------------------------------------------------
     */
-    Route::get('/orders', [OrderController::class, 'index'])
-        ->middleware('role:staff,admin');
+    Route::prefix('staff')->middleware('role:staff')->group(function () {
 
-    Route::get('/orders/status/{id}/{status}', [OrderController::class, 'updateStatus'])
-        ->middleware('role:staff,admin');
+        Route::get('/dashboard', function () {
+            return view('staff.dashboard');
+        });
 
-    Route::get('/orders/invoice/{id}', [OrderController::class, 'invoice'])
-        ->middleware('role:staff,admin');
+        // Orders
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::post('/orders/status/{id}', [OrderController::class, 'updateStatus']);
+        Route::get('/orders/invoice/{id}', [OrderController::class, 'invoice']);
+        Route::post('/orders/confirm/{id}', [OrderController::class, 'confirmOrder']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | STAFF (TRANG MỚI)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/returns', function () {
-        return view('staff.returns'); // tạo file sau
-    })->middleware('role:staff');
+        // Returns
+        Route::get('/returns', [OrderController::class, 'returns']);
+        Route::post('/returns/process/{id}', [OrderController::class, 'processReturn']);
 
-    Route::get('/inventory', function () {
-        return view('staff.inventory');
-    })->middleware('role:staff');
+        // Inventory
+        Route::get('/inventory', [InventoryController::class, 'inventory']);
 
-    Route::get('/promotion', function () {
-        return view('staff.promotion');
-    })->middleware('role:staff');
+        // Promotion
+        Route::get('/promotion', [ProductController::class, 'promotion']);
+        Route::post('/promotion/apply/{id}', [ProductController::class, 'applyPromotion']);
+        Route::get('/orders/confirm-payment/{id}', [OrderController::class, 'confirmPayment']);
+        
+    });
 
     /*
     |--------------------------------------------------------------------------
     | ADMIN
     |--------------------------------------------------------------------------
     */
-    Route::get('/products', [ProductController::class, 'index'])
-        ->middleware('role:admin');
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
 
-    Route::post('/products/store', [ProductController::class, 'store'])
-        ->middleware('role:admin');
+        Route::get('/dashboard', function () {
+            return view('admin.dashboard');
+        });
 
-    Route::delete('/products/delete/{id}', [ProductController::class, 'delete'])
-        ->middleware('role:admin');
-    Route::post('/products/update/{id}', [ProductController::class,'update']);    
-        
-    Route::get('/reports', [OrderController::class, 'report'])
-        ->middleware('role:admin');
+        // PRODUCTS
+        Route::get('/products', [ProductController::class, 'index']);
+        Route::post('/products/store', [ProductController::class, 'store']);
+        Route::post('/products/update/{id}', [ProductController::class, 'update']);
+        Route::delete('/products/delete/{id}', [ProductController::class, 'delete']);
 
-    Route::middleware(['auth','role:staff'])->group(function () {
+        // IMPORTS (NHẬP HÀNG)
+        Route::get('/imports', [ImportController::class, 'index']);
+        Route::post('/imports/store', [ImportController::class, 'store']);
+        Route::get('/imports/delete/{id}', [ImportController::class, 'destroy']);
 
-    Route::get('/staff/dashboard', function () {
-        return view('staff.dashboard');
+        // INVENTORY (CHỈ XEM)
+        Route::get('/inventory', [InventoryController::class, 'index']);
+
+        // REPORT
+        Route::get('/reports', [OrderController::class, 'report']);
     });
-
-    // 📦 Đơn hàng
-    Route::get('/staff/orders', [OrderController::class, 'index']);
-    Route::get('/staff/orders/status/{id}/{status}', [OrderController::class, 'updateStatus']);
-
-    // 🔄 Trả hàng
-    Route::get('/staff/returns', [OrderController::class, 'returns']);
-    Route::post('/staff/returns/process/{id}', [OrderController::class, 'processReturn']);
-
-    // 📦 Tồn kho
-    Route::get('/staff/inventory', [ProductController::class, 'inventory']);
-
-    // 🏷️ Khuyến mãi
-    Route::get('/staff/promotion', [ProductController::class, 'promotion']);
-    Route::post('/staff/promotion/apply/{id}', [ProductController::class, 'applyPromotion']);
-
-    });
-
-    Route::get('/san-pham', [ProductController::class, 'userProducts']);
-
-});

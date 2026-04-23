@@ -52,6 +52,6 @@ public function index(Request $request)
         ->take(10)
         ->get();
 
-    return view('user.index', compact('products', 'featured'));
+    return view('user.home', compact('products', 'featured'));
 }
 }

@@ -16,4 +16,8 @@ class Product extends Model
     'is_sale',
     'is_featured'
 ];
+public function inventory()
+{
+    return $this->hasOne(Inventory::class);
+}
 }

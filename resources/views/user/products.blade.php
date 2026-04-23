@@ -46,31 +46,31 @@
             cursor: pointer;
         }
         /* overlay */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    opacity: 0;
-    transition: 0.3s;
-}
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: 0.3s;
+        }
 
-/* hiện khi hover */
-.product-card:hover .overlay {
-    opacity: 1;
-}
+        /* hiện khi hover */
+        .product-card:hover .overlay {
+            opacity: 1;
+        }
 
-/* button icon */
-.overlay a {
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        /* button icon */
+        .overlay a {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .product-card:hover { 
             transform: translateY(-5px); 
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
@@ -83,21 +83,93 @@
 
         .price { color: red; font-weight: bold; }
 
-        .badge-sale {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: red;
-            color: #fff;
-            font-size: 12px;
-            padding: 3px 6px;
-            border-radius: 5px;
-        }
-
         .nav-link:hover {
             color: red !important;
             transform: translateY(-2px);
         }
+        .flying-img {
+            position: fixed;
+            z-index: 9999;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(.4,-0.3,1,.68);
+            border-radius: 10px;
+        }
+        .dropdown-menu {
+            border-radius: 10px;
+        }
+        #mini-cart-body img {
+            border: 1px solid #eee;
+        }
+        .cart-wrapper {
+            position: relative;
+        }
+        .mini-cart {
+            position: absolute;
+            top: 90%;   
+            right: 0;
+            width: 350px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: 0.25s;
+
+            z-index: 999;
+        }
+        .mini-cart::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+        }
+.cart-wrapper:hover .mini-cart {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.order-wrapper:hover .mini-cart {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.cart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cart-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.cart-item .info {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.qty-btn {
+    border: none;
+    background: #eee;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.remove-btn {
+    color: red;
+    cursor: pointer;
+    font-size: 14px;
+}
     </style>
 </head>
 
@@ -121,6 +193,12 @@
                     <li class="nav-item">
                         <a class="nav-link active fw-bold text-danger" href="/san-pham">Sản phẩm</a>
                     </li>
+                    <li class="nav-item">
+                            <a class="nav-link" href="/orders/my">Đơn hàng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/orders/history">Lịch sử</a>
+                    </li>
                 </ul>
 
                 <!-- SEARCH -->
@@ -136,30 +214,64 @@
                 </form>
 
                 <!-- USER -->
-                <div class="d-flex align-items-center">
-                    <i class="fa fa-shopping-cart me-3 fs-5"></i>
-
-                    <div class="dropdown">
-                        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
-                           data-bs-toggle="dropdown">
-                            <i class="fa fa-user me-2"></i>
-                            <span>{{ Auth::user()->name ?? 'User' }}</span>
+                <div class="cart-wrapper position-relative me-3">
+                    <!-- ICON -->
+                    <div id="cart-navbar" class="position-relative">
+                        <a href="/cart" class="position-relative me-3 text-dark">
+                        <i class="fa fa-shopping-cart fs-5"></i>
+                            <span id="cart-count" class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                {{ session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}
+                            </span>
                         </a>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item" href="#">Tài khoản</a></li>
-                            <li><a class="dropdown-item" href="#">Đơn hàng</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="/logout" method="POST">
-                                @csrf
-                                <button class="dropdown-item text-danger">
-                                    <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
-                                </button>
-                            </form>
-                        </li>
-                        </ul>
                     </div>
+
+                    <!-- MINI CART -->
+                    <div id="mini-cart" class="mini-cart shadow">
+                        <div id="mini-cart-body"></div>
+                    </div>
+
+                </div>
+
+                    {{-- User --}}
+                    @if(Auth::check())
+                    <div class="dropdown">
+
+        <!-- ĐÃ LOGIN -->
+        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
+           data-bs-toggle="dropdown">
+            <i class="fa fa-user me-2"></i>
+            <span>{{ Auth::user()->name }}</span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+
+            <li>
+                <a class="dropdown-item" href="#">
+                    <i class="fa fa-user-circle me-2"></i> Tài khoản
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+                <form action="/logout" method="POST">
+                    @csrf
+                    <button class="dropdown-item text-danger">
+                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
+                    </button>
+                </form>
+            </li>
+        </ul>
+
+    @else
+
+        <!-- CHƯA LOGIN -->
+        <div>
+            <a href="/login" class="me-2 text-decoration-none">Đăng nhập</a>
+            <a href="/register" class="text-decoration-none">Đăng ký</a>
+        </div>
+
+    @endif
+</div>
                 </div>
 
             </div>
@@ -174,7 +286,7 @@
             Tất cả sản phẩm
         @endif
     </h4>
-<div class="container-fluid mt-2"> {{-- giảm khoảng cách với header --}}
+<div class="container-fluid mt-2">
     <div class="row">
 
         <!-- SIDEBAR -->
@@ -258,18 +370,12 @@
 
                 @forelse($products as $p)
                     <div class="col-lg-3 col-md-4 col-6">
-    <div class="card product-card h-100 shadow-sm text-center position-relative overflow-hidden">
-
-        @if($p->is_sale)
-            <span class="badge bg-danger position-absolute m-2">
-                SALE
-            </span>
-        @endif
+    <div id="product-{{ $p->id }}" class="card product-card h-100 shadow-sm text-center position-relative overflow-hidden">
 
         <!-- IMAGE -->
         <div class="position-relative">
             <img src="{{ asset('images/' .$p->image) }}"
-                 class="card-img-top"
+                 class="card-img-top product-img"
                  style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
 
             <!-- HOVER ICON -->
@@ -283,9 +389,9 @@
                     </button>
 
                 <!-- THÊM GIỎ -->
-                <a href="/cart/add/{{ $p->id }}" class="btn btn-danger mx-1">
+                <button class="btn btn-danger add-to-cart" data-id="{{ $p->id }}">
                     <i class="fa fa-shopping-cart"></i>
-                </a>
+                </button>
 
             </div>
         </div>
@@ -318,7 +424,7 @@
                     <!-- IMAGE -->
                     <div class="col-md-6 text-center">
                         <img src="{{ asset('images/' .$p->image) }}"
-                             class="img-fluid rounded"
+                             class="img-fluid rounded card-img-top product-img"
                              style="max-height:300px; object-fit:cover;">
                     </div>
 
@@ -353,7 +459,7 @@
                         <!-- SIZE -->
                         <div class="mb-2">
                             <label><b>Size:</b></label>
-                            <select class="form-select">
+                            <select class="form-select" id="sizeSelect{{ $p->id}}">
                                 <option>38</option>
                                 <option>39</option>
                                 <option>40</option>
@@ -365,13 +471,13 @@
                         <!-- QUANTITY -->
                         <div class="mb-3">
                             <label><b>Số lượng:</b></label>
-                            <input type="number" value="1" min="1" class="form-control">
+                            <input type="number" id="qty{{ $p->id }}" value="1" min="1" class="form-control">
                         </div>
 
                         <!-- ADD CART -->
-                        <a href="/cart/add/{{ $p->id }}" class="btn btn-danger w-100">
-                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-                        </a>
+                        <button class="btn btn-danger mx-1 add-to-cart"data-id="{{ $p->id }}">
+                            <i class="fa fa-shopping-cart"> Thêm vào giỏ hàng</i>
+                        </button>
 
                     </div>
                 </div>
@@ -380,15 +486,11 @@
         </div>
     </div>
 </div>
-
-                @empty
-                    <div class="text-center w-100">
-                        <h5>Không có sản phẩm</h5>
-                    </div>
-                @endforelse
-
-            </div>
-
+@empty
+    <div class="text-center w-100">
+        <h5>Không có sản phẩm</h5>
+    </div>
+@endforelse
             <!-- PAGINATION -->
             <div class="d-flex justify-content-center mt-4">
                 {{ $products->links('pagination::bootstrap-5') }}
@@ -421,5 +523,144 @@
         });
     });
 </script>
+<script>
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        const productId = this.dataset.id;
+
+        // ❗ nếu click ngoài card → không có modal
+        let size = 40;
+        let quantity = 1;
+
+        const modal = this.closest('.modal');
+
+        if (modal) {
+            size = modal.querySelector('#sizeSelect' + productId)?.value || 40;
+            quantity = modal.querySelector('#qty' + productId)?.value || 1;
+        }
+
+        // 👉 animation luôn chạy
+        const productCard = document.querySelector(`#product-${productId}`);
+        const img = productCard?.querySelector('.product-img');
+
+        if (img) flyToCart(img);
+
+        // 👉 gọi API
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                size: size,
+                quantity: quantity
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.success) {
+                document.getElementById('cart-count').innerText = data.cart_count;
+                loadMiniCart();
+            } else {
+                alert(data.message);
+            }
+
+        })
+        .catch(err => {
+            alert("Vui lòng đăng nhập");
+        });
+
+    });
+});
+
+function flyToCart(imgElement) {
+
+    const cart = document.getElementById('cart-navbar');
+
+    const imgRect = imgElement.getBoundingClientRect();
+    const cartRect = cart.getBoundingClientRect();
+
+    const flyingImg = imgElement.cloneNode(true);
+    flyingImg.classList.add('flying-img');
+
+    document.body.appendChild(flyingImg);
+
+    // vị trí ban đầu
+    flyingImg.style.left = imgRect.left + 'px';
+    flyingImg.style.top = imgRect.top + 'px';
+
+    // animation
+    setTimeout(() => {
+        flyingImg.style.left = cartRect.left + 'px';
+        flyingImg.style.top = cartRect.top + 'px';
+        flyingImg.style.width = '30px';
+        flyingImg.style.height = '30px';
+        flyingImg.style.opacity = '0.5';
+    }, 10);
+
+    setTimeout(() => {
+        flyingImg.remove();
+    }, 800);
+}
+// load khi hover
+document.querySelector('.cart-wrapper').addEventListener('mouseenter', loadMiniCart);
+
+function loadMiniCart() {
+    fetch('/cart/mini')
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('mini-cart-body').innerHTML = html;
+        });
+}
+
+// update số lượng
+function updateQty(key, change) {
+    fetch('/cart/update-qty', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ key, change })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('cart-count').innerText = data.cart_count;
+        loadMiniCart();
+    });
+}
+
+// xoá
+function removeItem(key) {
+    fetch('/cart/remove-mini', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ key })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('cart-count').innerText = data.cart_count;
+        loadMiniCart();
+    });
+}
+
+document.querySelector('.order-wrapper').addEventListener('mouseenter', loadMiniOrder);
+
+function loadMiniOrder() {
+    fetch('/orders-mini')
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('mini-order-body').innerHTML = html;
+        });
+}
+</script>
+
 </body>
 </html>

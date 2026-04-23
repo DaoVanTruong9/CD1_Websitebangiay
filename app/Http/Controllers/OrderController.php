@@ -5,25 +5,40 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
 public function index()
 {
-    $orders = Order::latest()->get();
+    $orders = Order::with('items.product')->latest()->get();
     return view('staff.orders', compact('orders'));
 }
 
-public function updateStatus($id, $status)
+public function updateStatus(Request $request, $id)
 {
-    $order = Order::find($id);
-    $order->status = $status;
+    $order = Order::findOrFail($id);
+    $new = $request->status;
+    $current = $order->status;
+
+    $flow = [
+        'pending' => ['confirmed', 'cancelled'],
+        'confirmed' => ['shipping', 'cancelled'],
+        'shipping' => ['completed'],
+    ];
+
+    if (!isset($flow[$current]) || !in_array($new, $flow[$current])) {
+        return back()->with('error','Status không hợp lệ');
+    }
+
+    $order->status = $request->status;
     $order->save();
 
     return back()->with('success','Cập nhật thành công');
 }
+
 public function returns()
 {
     $orders = Order::where('status','delivered')->get();
@@ -38,50 +53,79 @@ public function processReturn($id)
 
     return back()->with('success','Đã xử lý trả hàng');
 }
+
+
 public function checkout(Request $request)
 {
-    $cart = session('cart');
-
-    $order = Order::create([
-        'customer_name'=>$request->name,
-        'phone'=>$request->phone,
-        'address'=>$request->address,
-        'total_price'=>collect($cart)->sum(fn($i)=>$i['price']*$i['quantity'])
+    if (!Auth::check()) {
+        return redirect('/login')->with('error', 'Vui lòng đăng nhập để thanh toán');
+    }
+    $request->validate([
+        'customer_name' => 'required',
+        'phone' => 'required',
+        'address' => 'required',
+        'payment' => 'required'
     ]);
 
-    foreach($cart as $id=>$item){
+    $cart = session('cart');
+
+    if (!$cart || count($cart) == 0) {
+        return back()->with('error', 'Giỏ hàng trống');
+    }
+
+    // ===== TÍNH TIỀN =====
+    $total = 0;
+    foreach ($cart as $item) {
+        $total += $item['price'] * $item['quantity'];
+    }
+
+    // ===== ÁP MÃ =====
+    if ($request->coupon == 'SALE10') {
+        $total *= 0.9;
+    }
+
+    // ===== TẠO ORDER =====
+    $order = Order::create([
+        'user_id' => Auth::id(),
+        'customer_name' => $request->customer_name,
+        'phone' => $request->phone,
+        'address' => $request->address,
+        'total_price' => $total,
+        'status' => 'pending'
+]);
+
+    // ===== LƯU ORDER ITEMS =====
+    foreach ($cart as $item) {
         OrderItem::create([
-            'order_id'=>$order->id,
-            'product_id'=>$id,
-            'quantity'=>$item['quantity'],
-            'price'=>$item['price']
+            'order_id' => $order->id,
+            'product_id' => $item['id'],
+            'quantity' => $item['quantity'],
+            'price' => $item['price']
         ]);
+        // 🔥 TRỪ KHO
+    $inventory = Inventory::where('product_id', $item['id'])->first();
+
+    if ($inventory) {
+        $inventory->quantity -= $item['quantity'];
+        $inventory->sold_quantity += $item['quantity'];
+        $inventory->updateStatus();
+        $inventory->save();
+    }
     }
 
     session()->forget('cart');
 
-    return redirect('/');
-}
-public function inventory()
-{
-    $products = Product::all();
-    return view('staff.inventory', compact('products'));
-}
-public function promotion()
-{
-    $products = Product::all();
-    return view('staff.promotion', compact('products'));
+    // ===== XỬ LÝ THANH TOÁN COD=====
+    if ($request->payment == 'cod') {
+        return redirect('/orders/my')->with('success', 'Đặt hàng thành công (COD)');
+    }
+
+    // ===== CHUYỂN KHOẢN QR =====
+    if ($request->payment == 'bank') {
+        return redirect('/payment/qr/' . $order->id);
+    }
 }
 
-public function applyPromotion($id)
-{
-    $product = Product::find($id);
-
-    $product->price = $product->price * 0.9; // giảm 10%
-    $product->save();
-
-    return back()->with('success','Đã giảm giá 10%');
-}
 // PDF
 public function invoice($id)
 {
@@ -102,4 +146,111 @@ public function report()
 
     return view('reports.index', compact('revenue'));
 }
+public function bankPayment($id)
+{
+    $order = Order::find($id);
+
+    return view('user.bank_payment', compact('order'));
+}
+
+public function myOrders()
+{
+    $orders = Order::with('items.product')
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
+
+    return view('user.orders', compact('orders'));
+}
+
+public function markPaid($id)
+{
+    $order = Order::where('id', $id)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    $order->payment_status = 'paid';
+    $order->save();
+
+    return redirect('/orders/my')
+        ->with('success', 'Đã gửi yêu cầu xác nhận thanh toán');
+}
+
+public function qrPayment($id)
+{
+    $order = Order::findOrFail($id);
+
+    // 🔥 THÔNG TIN NGÂN HÀNG CỦA BẠN
+    $bank = "MB"; // MB, VCB, ACB...
+    $account = "0123456789"; // STK của bạn
+
+    $amount = $order->total_price;
+    $info = "DH" . $order->id;
+
+    $qrUrl = "https://img.vietqr.io/image/{$bank}-{$account}-compact2.png?amount={$amount}&addInfo={$info}";
+
+    return view('user.qr_payment', compact('order', 'qrUrl'));
+}
+
+public function confirmPayment($id)
+{
+    $order = Order::findOrFail($id);
+    $order->payment_status = 'paid';
+    $order->status = 'confirmed';
+    $order->save();
+
+    return back()->with('success','Đã xác nhận thanh toán');
+}
+
+public function paymentSuccess($id)
+{
+    return redirect('/orders/my')
+        ->with('success', 'Đặt hàng thành công, vui lòng chờ xác nhận thanh toán');
+}
+public function confirmOrder($id)
+{
+    $order = Order::findOrFail($id);
+
+    if ($order->payment_status == 'paid') {
+        $order->status = 'confirmed';
+        $order->save();
+    }
+
+    return back()->with('success','Đã duyệt đơn');
+}
+
+public function shipOrder($id)
+{
+    $order = Order::findOrFail($id);
+    $order->status = 'shipping';
+    $order->save();
+
+    return back()->with('success','Đang giao hàng');
+}
+
+public function markReceived($id)
+{
+    $order = Order::where('id', $id)
+        ->where('user_id', auth()->id())
+        ->firstOrFail();
+
+    if ($order->status == 'shipping') {
+        $order->status = 'completed';
+        $order->save();
+    }
+
+    return back()->with('success','Đã xác nhận nhận hàng');
+}
+
+public function history()
+{
+    $orders = Order::with('items.product')
+        ->where('user_id', auth()->id())
+        ->where('status', 'completed')
+        ->latest()
+        ->get();
+
+    return view('user.history', compact('orders'));
+}
+
 }

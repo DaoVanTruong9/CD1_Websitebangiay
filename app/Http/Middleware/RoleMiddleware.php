@@ -7,16 +7,22 @@ use Illuminate\Http\Request;
 
 class RoleMiddleware
 {
-    public function handle($request, Closure $next, ...$roles) // 🔥 dùng ...
-    {
-        if (!auth()->check()) {
-            return redirect('/login');
-        }
-
-        if (!in_array(auth()->user()->role, $roles)) {
-            abort(403, 'Bạn không có quyền truy cập');
-        }
-
-        return $next($request);
+    public function handle($request, Closure $next, ...$roles)
+{
+    if (!auth()->check()) {
+        return redirect('/login');
     }
+
+    $userRole = strtolower(trim(auth()->user()->role));
+
+    $roles = array_map(function ($r) {
+        return strtolower(trim($r));
+    }, $roles);
+
+    if (!in_array($userRole, $roles)) {
+        abort(403, 'Bạn không có quyền truy cập');
+    }
+
+    return $next($request);
+}
 }

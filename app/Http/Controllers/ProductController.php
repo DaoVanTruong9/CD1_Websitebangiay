@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -36,7 +36,7 @@ class ProductController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        return view('products.index', compact('products', 'featured'));
+        return view('admin.products.index', compact('products', 'featured'));
     }
 
     public function store(Request $request)
@@ -97,11 +97,11 @@ class ProductController extends Controller
 
     public function inventory()
     {
-        $products = \App\Models\Product::all();
+        $products = Product::with('inventory')->get();
+
         return view('staff.inventory', compact('products'));
     }
     
-
     public function promotion()
     {
         $products = Product::all();
@@ -161,4 +161,5 @@ class ProductController extends Controller
 
     return view('user.products', compact('products'));
 }
+
 }

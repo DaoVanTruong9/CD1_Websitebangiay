@@ -26,8 +26,17 @@
             width: 250px;
             height: 100vh;
             background: #222;
-            color: white;
             position: fixed;
+        }
+        .sidebar a, .sidebar button {
+            width: 100%;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            background: none;
+            color: white;
+            text-align: left;
+            border: none;
         }
         .sidebar a {
             color: white;
@@ -36,7 +45,7 @@
             text-decoration: none;
         }
 
-        .sidebar a:hover {
+        .sidebar a:hover, .sidebar button:hover {
             background: #444;
         }
         .sidebar a.active {
@@ -75,16 +84,16 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-    <a href="/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+    <a href="/admin/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
     🏠 Dashboard
 </a>
 
-<a href="/products" class="{{ request()->is('products*') ? 'active' : '' }}">
+<a href="/admin/products" class="{{ request()->is('products*') ? 'active' : '' }}">
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/orders" class="{{ request()->is('orders*') ? 'active' : '' }}">
-    📦 Quản lý đơn hàng
+<a href="/admin/imports" class="{{ request()->is('inventory*') ? 'active' : '' }}">
+    📦 Quản lý nhập hàng
 </a>
 
 <a href="#" class="{{ request()->is('customers*') ? 'active' : '' }}">
@@ -92,7 +101,7 @@
 </a>
 
 <a href="#" class="{{ request()->is('users*') ? 'active' : '' }}">
-    🔐 Quản lý tài khoản
+    🔐 Quản lý nhân viên
 </a>
 
    <a href="#" onclick="toggleMenu()" 
@@ -116,7 +125,7 @@
 
     <form method="POST" action="/logout">
     @csrf
-    <button class="btn btn-danger w-100 mt-2">🚪 Đăng xuất</button>
+        <button>🚪 Đăng xuất</button>
     </form>
 </div>
 

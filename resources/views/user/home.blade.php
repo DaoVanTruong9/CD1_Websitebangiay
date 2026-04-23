@@ -148,6 +148,91 @@
             box-shadow: none;
             border-color: red;
         }
+        .flying-img {
+    position: fixed;
+    z-index: 9999;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    pointer-events: none;
+    transition: all 0.8s cubic-bezier(.4,-0.3,1,.68);
+    border-radius: 10px;
+}
+.dropdown-menu {
+    border-radius: 10px;
+}
+
+#mini-cart-body img {
+    border: 1px solid #eee;
+}
+.cart-wrapper {
+    position: relative;
+}
+.mini-cart {
+    position: absolute;
+    top: 90%;   
+    right: 0;
+
+    width: 350px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: 0.25s;
+
+    z-index: 999;
+}
+    .mini-cart::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+}
+.cart-wrapper:hover .mini-cart {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.order-wrapper:hover .mini-cart {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.cart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cart-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.cart-item .info {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.qty-btn {
+    border: none;
+    background: #eee;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.remove-btn {
+    color: red;
+    cursor: pointer;
+    font-size: 14px;
+}
     </style>
 </head>
 
@@ -161,7 +246,6 @@
         <a class="navbar-brand fw-bold text-danger" href="/">
             <i class="fa fa-shoe-prints"></i> Shoes Sport
         </a>
-
         <!-- MENU -->
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-3">
@@ -172,7 +256,10 @@
                     <a class="nav-link" href="/san-pham">Sản phẩm</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Lịch sử</a>
+                    <a class="nav-link" href="/orders/my">Đơn hàng</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/orders/history">Lịch sử</a>
                 </li>
             </ul>
 
@@ -188,32 +275,89 @@
                 </button>
             </form>
 
-            <!-- ICON + USER -->
-            <div class="d-flex align-items-center">
+            <!-- USER -->
+                <div class="cart-wrapper position-relative me-3">
+                    <!-- ICON -->
+                    <div id="cart-navbar" class="position-relative">
+                        <a href="/cart" class="position-relative me-3 text-dark">
+                        <i class="fa fa-shopping-cart fs-5"></i>
+                            <span id="cart-count" class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                {{ session('cart') ? array_sum(array_column(session('cart'), 'quantity')) : 0 }}
+                            </span>
+                        </a>
+                    </div>
 
-                <i class="fa fa-shopping-cart me-3 fs-5"></i>
+                    <!-- MINI CART -->
+                    <div id="mini-cart" class="mini-cart shadow">
+                        <div id="mini-cart-body"></div>
+                    </div>
 
-                <div class="dropdown">
-                    <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
-                       data-bs-toggle="dropdown">
-                        <i class="fa fa-user me-2"></i>
-                        <span>{{ Auth::user()->name ?? 'User' }}</span>
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><a class="dropdown-item" href="#">Tài khoản</a></li>
-                        <li><a class="dropdown-item" href="#">Đơn hàng</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form action="/logout" method="POST">
-                                @csrf
-                                <button class="dropdown-item text-danger">
-                                    <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
                 </div>
+
+
+                <!-- USER -->
+                @if(Auth::check())
+                <div class="dropdown">
+                    <!-- ĐÃ LOGIN -->
+                    <div class="dropdown">
+                        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
+                            data-bs-toggle="dropdown">
+                            <i class="fa fa-user me-2"></i>
+                            <span>{{ Auth::user()->name }}</span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fa fa-user-circle me-2"></i> Tài khoản
+                                </a>
+                            </li>
+
+                            <!-- ADMIN -->
+                            @if(Auth::user()->role == 'admin')
+                                <li>
+                                    <a class="dropdown-item text-primary" href="/admin/dashboard">
+                                        <i class="fa fa-cog me-2"></i> Quản trị
+                                    </a>
+                                </li>
+                            @endif
+
+                            <!-- STAFF -->
+                            @if(Auth::user()->role == 'staff')
+                              <li>
+                                    <a class="dropdown-item text-warning" href="/staff/dashboard">
+                                        <i class="fa fa-briefcase me-2"></i> Nhân viên
+                                    </a>
+                                </li>
+                            @endif
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li>
+                                <form action="/logout" method="POST">
+                                    @csrf
+                                    <button class="dropdown-item text-danger">
+                                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                    @else
+
+                    <!-- CHƯA LOGIN -->
+                    <div class="d-flex align-items-center">
+                        <a href="/login" class="me-2 text-decoration-none fw-bold">
+                            <i class="fa fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                        <span>/</span>
+                        <a href="/register" class="ms-2 text-decoration-none fw-bold">
+                            Đăng ký</a>
+                    </div>
+
+                @endif
 
             </div>
         </div>
@@ -374,7 +518,7 @@
                         <div class="mb-2">
                             <label><b>Size:</b></label>
                             <select class="form-select">
-    @                           @if($p->size)
+                        @if($p->size)
                                     @foreach(explode(',', $p->size) as $s)
                                         <option>{{ trim($s) }}</option>
                                     @endforeach
@@ -415,13 +559,10 @@
 
         @foreach($featured as $p)
         <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
-
             <div class="product-card position-relative shadow-sm overflow-hidden">
-
-            <div class="position-relative">
-            <img src="{{ asset('images/' .$p->image) }}"
-                 class="img-fluid"
-                 style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
+                <div class="position-relative">
+                    <img src="{{ asset('images/' .$p->image) }}" class="img-fluid"
+                        style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
             <!-- HOVER -->
             <div class="overlay d-flex justify-content-center align-items-center">
 
@@ -433,7 +574,7 @@
                 </button>
 
                 <!-- CART -->
-                <a href="/cart/add/{{ $p->id }}" class="btn btn-danger mx-1">
+                <button class="btn btn-danger mx-1" data-id="{{ $p->id}}">
                     <i class="fa fa-shopping-cart"></i>
                 </a>
 
@@ -505,27 +646,25 @@
                         <!-- SIZE -->
                         <div class="mb-2">
                             <label><b>Size:</b></label>
-                            <select class="form-select">
-                                @if($p->size)
-                                    @foreach(explode(',', $p->size) as $s)
-                                        <option>{{ trim($s) }}</option>
-                                    @endforeach
-                                @else
-                                    <option>Không có size</option>
-                                @endif
+                            <select class="form-select" id="sizeSelect{{ $p->id}}">
+                                <option>38</option>
+                                <option>39</option>
+                                <option>40</option>
+                                <option>41</option>
+                                <option>42</option>
                             </select>
                         </div>
 
                         <!-- QUANTITY -->
                         <div class="mb-3">
                             <label><b>Số lượng:</b></label>
-                            <input type="number" value="1" min="1" class="form-control">
+                            <input type="number" id="qty{{ $p->id }}"value="1" min="1" class="form-control">
                         </div>
 
                         <!-- ADD CART -->
-                        <a href="/cart/add/{{ $p->id }}" class="btn btn-danger w-100">
-                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-                        </a>
+                        <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                            <i class="fa fa-shopping-cart">Thêm vào giỏ hàng</i> 
+                        </button>
 
                     </div>
                 </div>
@@ -615,5 +754,143 @@
 @endif
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', function () {
+
+        const productId = this.dataset.id;
+
+        // ❗ nếu click ngoài card → không có modal
+        let size = 40;
+        let quantity = 1;
+
+        const modal = this.closest('.modal');
+
+        if (modal) {
+            size = modal.querySelector('#sizeSelect' + productId)?.value || 40;
+            quantity = modal.querySelector('#qty' + productId)?.value || 1;
+        }
+
+        // 👉 animation luôn chạy
+        const productCard = document.querySelector(`#product-${productId}`);
+        const img = productCard?.querySelector('.product-img');
+
+        if (img) flyToCart(img);
+
+        // 👉 gọi API
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                size: size,
+                quantity: quantity
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.success) {
+                document.getElementById('cart-count').innerText = data.cart_count;
+                loadMiniCart();
+            } else {
+                alert(data.message);
+            }
+
+        })
+        .catch(err => {
+            alert("Vui lòng đăng nhập");
+        });
+
+    });
+});
+
+function flyToCart(imgElement) {
+
+    const cart = document.getElementById('cart-navbar');
+
+    const imgRect = imgElement.getBoundingClientRect();
+    const cartRect = cart.getBoundingClientRect();
+
+    const flyingImg = imgElement.cloneNode(true);
+    flyingImg.classList.add('flying-img');
+
+    document.body.appendChild(flyingImg);
+
+    // vị trí ban đầu
+    flyingImg.style.left = imgRect.left + 'px';
+    flyingImg.style.top = imgRect.top + 'px';
+
+    // animation
+    setTimeout(() => {
+        flyingImg.style.left = cartRect.left + 'px';
+        flyingImg.style.top = cartRect.top + 'px';
+        flyingImg.style.width = '30px';
+        flyingImg.style.height = '30px';
+        flyingImg.style.opacity = '0.5';
+    }, 10);
+
+    setTimeout(() => {
+        flyingImg.remove();
+    }, 800);
+}
+// load khi hover
+document.querySelector('.cart-wrapper').addEventListener('mouseenter', loadMiniCart);
+
+function loadMiniCart() {
+    fetch('/cart/mini')
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('mini-cart-body').innerHTML = html;
+        });
+}
+
+// update số lượng
+function updateQty(key, change) {
+    fetch('/cart/update-qty', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ key, change })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('cart-count').innerText = data.cart_count;
+        loadMiniCart();
+    });
+}
+
+// xoá
+function removeItem(key) {
+    fetch('/cart/remove-mini', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ key })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('cart-count').innerText = data.cart_count;
+        loadMiniCart();
+    });
+}
+
+document.querySelector('.order-wrapper').addEventListener('mouseenter', loadMiniOrder);
+
+function loadMiniOrder() {
+    fetch('/orders-mini')
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('mini-order-body').innerHTML = html;
+        });
+}
+</script>
 </body>
 </html>
