@@ -26,20 +26,22 @@
             color: white;
             position: fixed;
         }
+
         .submenu {
-        padding-left: 20px;
+            padding-left: 20px;
         }
 
         .submenu {
-        max-height: 0;
-        overflow: hidden;
-        background: #333;
-        transition: max-height 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+            background: #333;
+            transition: max-height 0.3s ease;
         }
 
         .submenu.active {
-        max-height: 200px;
+            max-height: 200px;
         }
+
         .sidebar a {
             color: white;
             display: block;
@@ -104,8 +106,9 @@
 
     {{-- THÔNG BÁO --}}
     @if(session('success'))
-        <div class="alert alert-success">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
     
@@ -119,7 +122,6 @@
                     <th>Địa chỉ</th>
                     <th>Tổng tiền</th>
                     <th>Ngày</th>
-                    <th>Chi tiết</th>
                     <th>Trạng thái</th>
                     <th>Hành động</th>
                     <th>Thanh toán</th>
@@ -140,20 +142,15 @@
 
                     <td>{{ $o->created_at }}</td>
 
-                    {{-- XEM CHI TIẾT --}}
-                    <td class="text-center">
-                        <button class="btn btn-primary btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#order{{ $o->id }}">
-                            Xem
-                        </button>
-                    </td>
-
                     {{-- TRẠNG THÁI --}}
                     <td class="text-center">
                         @if($o->payment_method == 'bank' && $o->payment_status == 'pending')
-                            <a href="/orders/confirm-payment/{{ $o->id }}"
-                                class="btn btn-sm btn-success">Xác nhận đã thanh toán</a>
+                            <form action="/orders/confirm-payment/{{ $o->id }}" method="POST">
+        @csrf
+        <button class="btn btn-sm btn-success">
+            Xác nhận đã thanh toán
+        </button>
+    </form>
                         @endif
                         @if($o->status == 'pending')
                             <span class="status pending">Chờ xử lý</span>
@@ -174,116 +171,95 @@
 
                     {{-- HÀNH ĐỘNG --}}
                     <td class="text-center">
-                        @if($o->status != 'completed')
+                        @if($o->status == 'confirmed')
                             <form action="/staff/orders/status/{{ $o->id }}" method="POST" style="display:inline">
                                 @csrf
-                                <input type ="hidden" name="status" value="shipping">
-                               <button class="btn btn-sm btn-info">Giao</button> 
+                                <input type="hidden" name="status" value="shipping">
+                                <button class="btn btn-sm btn-info">Giao</button> 
                             </form>
-                            <a href="/orders/status/{{ $o->id }}/completed"
-                               class="btn btn-sm btn-success">Xong</a>
+                        @endif
+                        
+                        {{-- chỉ pending hoặc confirmed mới được hủy --}}
+                        @if(in_array($o->status, ['pending', 'confirmed']))
+                            <form method="POST" action="/staff/orders/status/{{ $o->id }}" style="display:inline">
+                                @csrf
+                                <input type="hidden" name="status" value="cancelled">
+                                <button class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Xác nhận hủy đơn?')">
+                                    Hủy
+                                </button>
+                            </form>
+                        @endif
 
-                            <a href="/orders/status/{{ $o->id }}/cancelled"
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Xác nhận hủy đơn?')">
-                               Hủy
-                            </a>
-                        @else
+                        {{-- completed --}}
+                        @if($o->status == 'completed')
                             <button class="btn btn-secondary btn-sm" disabled>
                                 Đã hoàn thành
                             </button>
                         @endif
+
                     </td>
+
                     <td class="text-center">
-                        @if($o->payment_method == 'cod')
-                            <span class="badge bg-secondary">COD</span>
-                        @else
-                        @if($o->payment_status == 'paid')
-                            <span class="badge bg-success">Đã thanh toán</span>
-                        @else
-                            <span class="badge bg-warning">Chờ CK</span>
-                        @endif
-                        @endif
-                        @if($o->payment_status == 'paid' && $o->status == 'pending')
-                            <form action="/staff/orders/confirm/{{ $o->id }}" method="POST" style="display:inline;">
-                                @csrf
-                                <button class="btn btn-success btn-sm">
-                                    Duyệt đơn
-                                </button>
-                            </form>
-                            <form method="POST" action="/staff/orders/status/{{ $o->id }}">
-                                @csrf
-                                <input type="hidden" name="status" value="cancelled">
-                                    <button class="btn btn-danger btn-sm">Hủy</button>
-                            </form>
-                        @endif
-                    </td>
+
+    {{-- ĐÃ THANH TOÁN (ưu tiên hiển thị) --}}
+    @if($o->payment_status == 'paid')
+        <span class="badge bg-success">Đã thanh toán</span>
+
+    {{-- COD chưa thanh toán --}}
+    @elseif($o->payment_method == 'cod')
+        <span class="badge bg-secondary">Thanh toán khi nhận</span>
+
+    {{-- BANK chưa thanh toán --}}
+    @elseif($o->payment_method == 'bank')
+        <span class="badge bg-warning">Chờ CK</span>
+
+    {{-- fallback (tránh trắng) --}}
+    @else
+        <span class="badge bg-dark">Không rõ</span>
+    @endif
+
+    {{-- NÚT DUYỆT --}}
+    @if (
+        ($o->payment_method == 'cod' && $o->status == 'pending') ||
+        ($o->payment_method == 'bank' && $o->payment_status == 'paid' && $o->status == 'pending')
+    )
+        <form action="/staff/orders/confirm/{{ $o->id }}" method="POST" style="display:inline;">
+            @csrf
+            <button class="btn btn-success btn-sm">
+                Duyệt đơn
+            </button>
+        </form>
+    @endif
+
+</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-                {{-- MODAL CHI TIẾT --}}
-                <div class="modal fade" id="order{{ $o->id }}">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
 
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    Chi tiết đơn hàng #{{ $o->id }}
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+    
 
-                            <div class="modal-body">
-
-                                <p><b>Khách:</b> {{ $o->customer_name }}</p>
-                                <p><b>SĐT:</b> {{ $o->phone }}</p>
-                                <p><b>Địa chỉ:</b> {{ $o->address }}</p>
-
-                                <hr>
-
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Số lượng</th>
-                                            <th>Giá</th>
-                                            <th>Tổng</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        @foreach($o->items as $item)
-                                        <tr>
-                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                            <td>{{ $item->quantity }}</td>
-                                            <td>{{ number_format($item->price) }} đ</td>
-                                            <td>
-                                                {{ number_format($item->price * $item->quantity) }} đ
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-
-                                <h5 class="text-end text-danger">
-                                    Tổng: {{ number_format($o->total_price) }} đ
-                                </h5>
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 function toggleMenu() {
     let menu = document.getElementById("submenu");
     menu.classList.toggle("active");
 }
 </script>
+<script>
+setTimeout(function() {
+    let alert = document.querySelector('.alert');
+    if (alert) {
+        let bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    }
+}, 2500);
+</script>
+
 </body>
 </html>

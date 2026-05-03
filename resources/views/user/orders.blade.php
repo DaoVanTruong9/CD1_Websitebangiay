@@ -168,8 +168,9 @@
 
 <body>
 @if(session('success'))
-    <div class="alert alert-success">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
 
@@ -367,7 +368,7 @@
                     {{ number_format($order->total_price) }} đ
                 </span>
             </div>
-
+            
             <!-- ACTION -->
             <div class="text-end mt-3">
                 <a href="/orders/invoice/{{ $order->id }}" 
@@ -399,6 +400,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script>
+setTimeout(function() {
+    let alert = document.querySelector('.alert');
+    if (alert) {
+        let bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    }
+}, 2500);
+</script>
 </body>
 </html>

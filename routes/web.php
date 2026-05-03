@@ -11,6 +11,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\DashboardController;
 use App\Models\Inventory;
 
 /*
@@ -95,7 +96,7 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::post('/returns/process/{id}', [OrderController::class, 'processReturn']);
 
         // Inventory
-        Route::get('/inventory', [InventoryController::class, 'inventory']);
+        Route::get('/inventory', [InventoryController::class, 'index']);
 
         // Promotion
         Route::get('/promotion', [ProductController::class, 'promotion']);
@@ -111,9 +112,7 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
     */
     Route::prefix('admin')->middleware('role:admin')->group(function () {
 
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        });
+        Route::get('/dashboard', [DashboardController::class, 'index']);
 
         // PRODUCTS
         Route::get('/products', [ProductController::class, 'index']);
@@ -127,8 +126,9 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::get('/imports/delete/{id}', [ImportController::class, 'destroy']);
 
         // INVENTORY (CHỈ XEM)
-        Route::get('/inventory', [InventoryController::class, 'index']);
+        // Route::get('/inventory', [InventoryController::class, 'index']);
 
         // REPORT
         Route::get('/reports', [OrderController::class, 'report']);
+        Route::get('/coupons', [CouponController::class, 'index']);
     });

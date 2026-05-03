@@ -149,15 +149,15 @@
             border-color: red;
         }
         .flying-img {
-    position: fixed;
-    z-index: 9999;
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    pointer-events: none;
-    transition: all 0.8s cubic-bezier(.4,-0.3,1,.68);
-    border-radius: 10px;
-}
+            position: fixed;
+            z-index: 9999;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(.4,-0.3,1,.68);
+            border-radius: 10px;
+        }
 .dropdown-menu {
     border-radius: 10px;
 }
@@ -233,6 +233,10 @@
     cursor: pointer;
     font-size: 14px;
 }
+
+.product-card.opacity-50 {
+    pointer-events: none;
+}
     </style>
 </head>
 
@@ -240,7 +244,7 @@
 <div class="container">
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg bg-white shadow-sm px-3 py-2">
-    <div class="container-fluid">
+    {{-- <div class="container"> --}}
 
         <!-- LOGO -->
         <a class="navbar-brand fw-bold text-danger" href="/">
@@ -291,13 +295,10 @@
                     <div id="mini-cart" class="mini-cart shadow">
                         <div id="mini-cart-body"></div>
                     </div>
-
                 </div>
-
 
                 <!-- USER -->
                 @if(Auth::check())
-                <div class="dropdown">
                     <!-- ĐÃ LOGIN -->
                     <div class="dropdown">
                         <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
@@ -413,6 +414,7 @@
         <span>Mizuno</span>
     </a>
     </div>
+
     <!-- PRODUCT -->
     <div class="mt-5">
         <h4 class="text-center mt-5 fw-bold">
@@ -423,17 +425,39 @@
     @endif
         </h4>
     <div class="row mt-4">
+        
         @foreach($products as $p)
+        @php
+            $qty = $p->inventory->quantity ?? 0;
+
+            if ($qty == 0) {
+                $status = 'Hết hàng';
+                $badge = 'bg-secondary';
+                $class = 'text-secondary';
+            } elseif ($qty < 5) {
+                $status = 'Sắp hết';
+                $badge = 'bg-danger';
+                $class = 'text-danger';
+            } else {
+                $status = 'Còn hàng';
+                $badge = 'bg-success';
+                $class = 'text-success';
+            }
+        @endphp
+
         <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
-            <div class="product-card position-relative shadow-sm overflow-hidden">
+            <div class="product-card {{ $qty == 0 ? 'opacity-50' : ''}} position-relative shadow-sm overflow-hidden" id="product-{{ $p->id }}">
                 @if($p->is_sale==1)
                     <span class="badge bg-danger position-absolute m-2">SALE</span>
                 @endif
-
+                <span class="badge position-absolute top-0 end-0 m-2 {{ $badge }}
+                    {{ $qty == 0 ? 'bg-secondary' : ($qty < 5 ? 'bg-danger' : 'bg-success') }}">
+                    {{ $status }}
+                </span>
                 <!-- IMAGE -->
                 <div class="position-relative">
                     <img src="{{ asset('images/' .$p->image) }}"
-                        class="img-fluid"
+                        class="img-fluid product-img"
                         style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
 
                     <!-- HOVER -->
@@ -447,9 +471,15 @@
                     </button>
 
                 <!-- THÊM GIỎ -->
-                <a href="/cart/add/{{ $p->id }}" class="btn btn-danger mx-1">
-                    <i class="fa fa-shopping-cart"></i>
-                </a>
+                @if($qty == 0)
+                    <button class="btn btn-secondary mx-1" disabled>
+                        <i class="fa fa-ban"></i>
+                    </button>
+                @else
+                    <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                        <i class="fa fa-shopping-cart"></i>
+                    </button>
+                @endif
 
             </div>
         </div>
@@ -462,8 +492,8 @@
         </div>
 
     </div>
-
 </div>
+
 <!-- ================= MODAL ================= -->
 <div class="modal fade" id="productModal{{ $p->id }}" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -482,7 +512,7 @@
                     <!-- IMAGE -->
                     <div class="col-md-6 text-center">
                         <img src="{{ asset('images/' .$p->image) }}"
-                             class="img-fluid rounded"
+                             class="img-fluid product-img"
                              style="max-height:300px; object-fit:cover;">
                     </div>
 
@@ -492,12 +522,34 @@
                         <p><b>Mã SP:</b> SP{{ $p->id }}</p>
 
                         <p>
-                            <b>Tình trạng:</b>
-                            @if($p->stock > 0)
-                                <span class="text-success">Còn hàng</span>
+                            @php
+                                $qty = $p->inventory->quantity ?? 0;
+
+                                if ($qty == 0) {
+                                    $status = 'Hết hàng';
+                                    $class = 'text-secondary';
+                                } elseif ($qty < 5) {
+                                    $status = 'Sắp hết';
+                                    $class = 'text-danger';
+                                } else {
+                                    $status = 'Còn hàng';
+                                    $class = 'text-success';
+                                }
+                            @endphp
+                            @if($qty == 0)
+                                <button class="btn btn-secondary" disabled>
+                                    Hết hàng
+                                </button>
                             @else
-                                <span class="text-danger">Hết hàng</span>
+                                <button class="btn btn-danger add-to-cart" data-id="{{ $p->id }}">
+                                    <i class="fa fa-shopping-cart"></i>
+                                </button>
                             @endif
+                        </p>
+
+                        <p>
+                            <b>Tình trạng:</b>
+                            <span class="{{ $class }}">{{ $status }}</span>
                         </p>
 
                         <p class="text-danger fs-5 fw-bold">
@@ -507,7 +559,7 @@
                         <!-- COLOR -->
                         <div class="mb-2">
                             <label><b>Màu:</b></label>
-                            <select class="form-select">
+                            <select class="form-select" id="sizeSelect{{ $p->id }}">
                                 <option>Đen</option>
                                 <option>Trắng</option>
                                 <option>Xanh</option>
@@ -517,7 +569,7 @@
                         <!-- SIZE -->
                         <div class="mb-2">
                             <label><b>Size:</b></label>
-                            <select class="form-select">
+                            <select class="form-select" id="sizeSelect{{ $p->id }}">
                         @if($p->size)
                                     @foreach(explode(',', $p->size) as $s)
                                         <option>{{ trim($s) }}</option>
@@ -531,13 +583,23 @@
                         <!-- QUANTITY -->
                         <div class="mb-3">
                             <label><b>Số lượng:</b></label>
-                            <input type="number" value="1" min="1" class="form-control">
+                            <input type="number" id="qty{{ $p->id }}" value="1" min="1" class="form-control">
                         </div>
 
                         <!-- ADD CART -->
-                        <a href="/cart/add/{{ $p->id }}" class="btn btn-danger w-100">
-                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-                        </a>
+                        @php
+                            $qty = $p->inventory->quantity ?? 0;
+                        @endphp
+
+                        @if($qty == 0)
+                            <button class="btn btn-secondary mx-1" disabled>
+                                <i class="fa fa-ban"></i>
+                            </button>
+                        @else
+                            <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                                <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                            </button>
+                        @endif
 
                     </div>
                 </div>
@@ -559,9 +621,9 @@
 
         @foreach($featured as $p)
         <div class="col mb-4" style="flex: 0 0 20%; max-width: 20%;">
-            <div class="product-card position-relative shadow-sm overflow-hidden">
+            <div class="product-card {{ $qty == 0 ? 'opacity-50' : '' }} position-relative shadow-sm overflow-hidden" id="product-{{ $p->id }}">
                 <div class="position-relative">
-                    <img src="{{ asset('images/' .$p->image) }}" class="img-fluid"
+                    <img src="{{ asset('images/' .$p->image) }}" class="img-fluid product-img"
                         style="height:200px; object-fit:cover;"onerror="this.src='{{ asset('images/anh_login.png') }}'">
             <!-- HOVER -->
             <div class="overlay d-flex justify-content-center align-items-center">
@@ -574,9 +636,15 @@
                 </button>
 
                 <!-- CART -->
-                <button class="btn btn-danger mx-1" data-id="{{ $p->id}}">
-                    <i class="fa fa-shopping-cart"></i>
-                </a>
+                @php
+                    $qty = $p->inventory->quantity ?? 0;
+                @endphp
+
+                @if($qty > 0)
+                    <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                        <i class="fa fa-shopping-cart"></i>
+                    </button>
+                @endif
 
             </div>
         </div>
@@ -611,7 +679,7 @@
                     <!-- IMAGE -->
                     <div class="col-md-6 text-center">
                         <img src="{{ asset('images/' .$p->image) }}"
-                             class="img-fluid rounded"
+                             class="img-fluid product-img"
                              style="max-height:300px; object-fit:cover;">
                     </div>
 
@@ -621,12 +689,25 @@
                         <p><b>Mã SP:</b> SP{{ $p->id }}</p>
 
                         <p>
-                            <b>Tình trạng:</b>
-                            @if($p->stock > 0)
-                                <span class="text-success">Còn hàng</span>
-                            @else
-                                <span class="text-danger">Hết hàng</span>
-                            @endif
+                            @php
+                                $qty = $p->inventory->quantity ?? 0;
+
+                                if ($qty == 0) {
+                                    $status = 'Hết hàng';
+                                    $class = 'text-secondary';
+                                } elseif ($qty < 5) {
+                                    $status = 'Sắp hết';
+                                    $class = 'text-danger';
+                                } else {
+                                    $status = 'Còn hàng';
+                                    $class = 'text-success';
+                                }
+                            @endphp
+
+                            <p>
+                                <b>Tình trạng:</b>
+                                <span class="{{ $class }}">{{ $status }}</span>
+                            </p>
                         </p>
 
                         <p class="text-danger fs-5 fw-bold">
@@ -636,7 +717,7 @@
                         <!-- COLOR -->
                         <div class="mb-2">
                             <label><b>Màu:</b></label>
-                            <select class="form-select">
+                            <select class="form-select" id="colorSelect{{ $p->id }}">
                                 <option>Đen</option>
                                 <option>Trắng</option>
                                 <option>Xanh</option>
@@ -662,9 +743,15 @@
                         </div>
 
                         <!-- ADD CART -->
-                        <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
-                            <i class="fa fa-shopping-cart">Thêm vào giỏ hàng</i> 
-                        </button>
+                        @if($qty == 0)
+                            <button class="btn btn-secondary mx-1" disabled>
+                                <i class="fa fa-ban"></i> Hết hàng
+                            </button>
+                        @else
+                            <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                                <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                            </button>
+                        @endif
 
                     </div>
                 </div>
@@ -677,6 +764,8 @@
     </div>
 @endif
 </div>
+
+
 <div class="mt-5">
     <h4 class="text-center fw-bold">Chọn theo Vị trí - Phong cách</h4>
 
@@ -760,7 +849,7 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
 
         const productId = this.dataset.id;
 
-        // ❗ nếu click ngoài card → không có modal
+        //nếu click ngoài card → không có modal
         let size = 40;
         let quantity = 1;
 
@@ -771,13 +860,15 @@ document.querySelectorAll('.add-to-cart').forEach(btn => {
             quantity = modal.querySelector('#qty' + productId)?.value || 1;
         }
 
-        // 👉 animation luôn chạy
-        const productCard = document.querySelector(`#product-${productId}`);
+        //animation luôn chạy
+        
+        let productCard = 
+            document.querySelector(`#product-${productId}`);
         const img = productCard?.querySelector('.product-img');
 
         if (img) flyToCart(img);
 
-        // 👉 gọi API
+        // gọi API
         fetch('/cart/add', {
             method: 'POST',
             headers: {
@@ -838,8 +929,10 @@ function flyToCart(imgElement) {
     }, 800);
 }
 // load khi hover
-document.querySelector('.cart-wrapper').addEventListener('mouseenter', loadMiniCart);
-
+const cartWrapper = document.querySelector('.cart-wrapper');
+if(cartWrapper){
+    cartWrapper.addEventListener('mouseenter', loadMiniCart);
+}
 function loadMiniCart() {
     fetch('/cart/mini')
         .then(res => res.text())
@@ -881,8 +974,6 @@ function removeItem(key) {
         loadMiniCart();
     });
 }
-
-document.querySelector('.order-wrapper').addEventListener('mouseenter', loadMiniOrder);
 
 function loadMiniOrder() {
     fetch('/orders-mini')

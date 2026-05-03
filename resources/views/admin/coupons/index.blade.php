@@ -113,7 +113,7 @@
     📦 Quản lý nhập hàng
 </a>
 
-<a href="/admin/coupons" class="{{ request()->is('customers*') ? 'active' : '' }}">
+<a href="#" class="{{ request()->is('customers*') ? 'active' : '' }}">
     👤 Quản lý khuyến mãi
 </a>
 
@@ -136,107 +136,57 @@
 <!-- CONTENT -->
 <div class="content">
 
-    <h3 class="mb-4">Dashboard</h3>
+<h3>Quản lý mã khuyến mãi</h3>
 
-    <!-- ===== TỔNG ===== -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card-box bg-pink text-white p-3">
-                Đơn hàng
-                <h3>{{ $totalOrders }}</h3>
-            </div>
-        </div>
+<!-- TẠO MÃ -->
+<form method="POST" action="/admin/coupons/store" class="mb-3">
+    @csrf
 
-        <div class="col-md-3">
-            <div class="card-box bg-blue text-white p-3">
-                Sản phẩm
-                <h3>{{ $totalProducts }}</h3>
-            </div>
-        </div>
+    <input type="text" name="code" placeholder="Mã (SALE10)" required>
+    <input type="number" name="discount" placeholder="% giảm" required>
+    <input type="number" name="quantity" placeholder="Số lượng" required>
+    <input type="date" name="expired_at" required>
 
-        <div class="col-md-3">
-            <div class="card-box bg-green text-white p-3">
-                Khách hàng
-                <h3>{{ $totalCustomers }}</h3>
-            </div>
-        </div>
+    <button>Tạo</button>
+</form>
 
-        <div class="col-md-3">
-            <div class="card-box bg-orange text-white p-3">
-                Doanh thu
-                <h3>{{ number_format($revenue) }}đ</h3>
-            </div>
-        </div>
-    </div>
+<hr>
 
-    <!-- ===== HÔM NAY ===== -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card-box bg-dark text-white p-3">
-                Đơn hôm nay
-                <h3>{{ $todayOrders }}</h3>
-            </div>
-        </div>
+<!-- DANH SÁCH -->
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Mã</th>
+        <th>Giảm (%)</th>
+        <th>Số lượng</th>
+        <th>Hết hạn</th>
+        <th>Trạng thái</th>
+        <th></th>
+    </tr>
 
-        <div class="col-md-6">
-            <div class="card-box bg-success text-white p-3">
-                Doanh thu hôm nay
-                <h3>{{ number_format($todayRevenue) }}đ</h3>
-            </div>
-        </div>
-    </div>
+    @foreach($coupons as $c)
+    @php
+        $expired = now()->gt($c->expired_at);
+    @endphp
 
-    <!-- ===== CHART ===== -->
-    <div class="card p-3 mb-4">
-        <h5>Biểu đồ doanh thu</h5>
-        <canvas id="chart"></canvas>
-    </div>
+    <tr>
+        <td>{{ $c->code }}</td>
+        <td>{{ $c->discount }}%</td>
+        <td>{{ $c->quantity }}</td>
+        <td>{{ $c->expired_at }}</td>
 
-    <!-- ===== TOP PRODUCT ===== -->
-    <div class="card p-3 mb-4">
-        <h5>Top sản phẩm bán chạy</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Sản phẩm</th>
-                    <th>Đã bán</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($topProducts as $item)
-                <tr>
-                    <td>{{ $item->product->name ?? 'N/A' }}</td>
-                    <td>{{ $item->total_sold }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+        <td>
+            {{ $expired ? 'Hết hạn' : 'Còn hạn' }}
+        </td>
 
-    <!-- ===== ĐƠN GẦN ĐÂY ===== -->
-    <div class="card p-3">
-        <h5>Đơn hàng gần đây</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Khách</th>
-                    <th>Tiền</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($latestOrders as $o)
-                <tr>
-                    <td>#{{ $o->id }}</td>
-                    <td>{{ $o->customer_name }}</td>
-                    <td>{{ number_format($o->total_price) }}đ</td>
-                    <td>{{ $o->status }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+        <td>
+            <form method="POST" action="/admin/coupons/delete/{{ $c->id }}">
+                @csrf
+                <button>Xóa</button>
+            </form>
+        </td>
+    </tr>
+    @endforeach
+</table>
 
 </div>
 
@@ -244,24 +194,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('chart');
-
-const revenueData = @json($monthlyRevenue);
-
-const labels = Object.keys(revenueData).map(m => 'T' + m);
-const data = Object.values(revenueData);
-
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Doanh thu',
-            data: data,
-            borderWidth: 2
-        }]
-    }
-});
 function toggleMenu(){
     let menu = document.getElementById('submenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';

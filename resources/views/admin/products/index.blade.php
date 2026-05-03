@@ -93,7 +93,7 @@
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/admin/inventory" class="{{ request()->is('orders*') ? 'active' : '' }}">
+<a href="/admin/imports" class="{{ request()->is('orders*') ? 'active' : '' }}">
     📦 Quản lý nhập hàng
 </a>
 
@@ -102,7 +102,7 @@
 </a>
 
 <a href="#" class="{{ request()->is('users*') ? 'active' : '' }}">
-    🔐 Quản lý tài khoản
+    🔐 Quản lý nhân viên
 </a>
 
     <a href="#" onclick="toggleMenu()">📊 Báo cáo</a>
@@ -110,6 +110,7 @@
         <a href="#">- Doanh thu</a>
         <a href="#">- Sản phẩm bán chạy</a>
     </div>
+    
     <form action="/logout" method="POST">
         @csrf
         <button>🚪 Đăng xuất</button>

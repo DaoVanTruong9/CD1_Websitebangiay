@@ -101,7 +101,7 @@ class ProductController extends Controller
 
         return view('staff.inventory', compact('products'));
     }
-    
+
     public function promotion()
     {
         $products = Product::all();
@@ -154,7 +154,7 @@ class ProductController extends Controller
     });
 }
 
-    $products = $query->latest()->paginate(12);
+    $products = Product::with('inventory')->paginate(12);
 
     // giữ query khi phân trang
     $products->appends($request->all());

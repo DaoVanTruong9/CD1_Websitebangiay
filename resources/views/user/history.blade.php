@@ -168,46 +168,46 @@
             width: 100%;
             height: 10px;
         }
-.cart-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.order-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.cart-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
+        .cart-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .order-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-.cart-item img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
 
-.cart-item .info {
-    flex: 1;
-    margin-left: 10px;
-}
+        .cart-item .info {
+            flex: 1;
+            margin-left: 10px;
+        }
 
-.qty-btn {
-    border: none;
-    background: #eee;
-    padding: 2px 8px;
-    cursor: pointer;
-}
+        .qty-btn {
+            border: none;
+            background: #eee;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
 
-.remove-btn {
-    color: red;
-    cursor: pointer;
-    font-size: 14px;
-}
+        .remove-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 

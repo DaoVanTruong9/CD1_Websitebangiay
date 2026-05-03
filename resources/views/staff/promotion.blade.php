@@ -1,12 +1,17 @@
 <h3>Khuyến mãi</h3>
 
-@foreach($products as $p)
-<div>
-    {{ $p->name }} - {{ $p->price }}
+    <form method="POST" action="/staff/apply-coupon">
+    @csrf
 
-    <form method="POST" action="/staff/promotion/apply/{{ $p->id }}">
-        @csrf
-        <button>Giảm 10%</button>
-    </form>
-</div>
+    <select name="coupon_id">
+        @foreach($coupons as $c)
+            <option value="{{ $c->id }}">
+                {{ $c->code }} - {{ $c->discount }}%
+            </option>
+        @endforeach
+    </select>
+
+    <button>Áp dụng</button>
+</form>
+
 @endforeach

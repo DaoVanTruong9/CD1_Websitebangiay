@@ -2,17 +2,17 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý nhập hàng</title>
+    <title>Kiểm tra tồn kho</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
         body { margin: 0; }
 
         .header {
             height: 60px;
-            background: #0b6fc7;
+            background: #179bf9;
             color: white;
             display: flex;
             align-items: center;
@@ -24,28 +24,37 @@
             width: 250px;
             height: 100vh;
             background: #222;
+            color: white;
             position: fixed;
         }
 
-        .sidebar a, .sidebar button {
-            width: 100%;
-            padding: 12px 20px;
-            display: block;
-            text-decoration: none;
-            background: none;
+        .sidebar a {
             color: white;
-            text-align: left;
-            border: none;
+            display: block;
+            padding: 12px 20px;
+            text-decoration: none;
         }
 
-        .sidebar a:hover, .sidebar button:hover {
+        .sidebar a:hover {
             background: #444;
         }
 
         .sidebar a.active {
             background: #000;
             font-weight: bold;
-            border-left: 4px solid #0b6fc7;
+            border-left: 4px solid #179bf9;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            background: #333;
+            transition: max-height 0.3s ease;
+            padding-left: 20px;
+        }
+
+        .submenu.active {
+            max-height: 200px;
         }
 
         .content {
@@ -56,35 +65,43 @@
         }
 
         .card-box {
-            background: #fff;
+            background: white;
             border-radius: 10px;
             padding: 15px;
         }
+
+        .badge-low { background: red; }
+        .badge-ok { background: green; }
+        .badge-out { background: gray; }
     </style>
 </head>
 
 <body>
 
-<div class="header">Nhân viên SHOP GIÀY</div>
+<!-- HEADER -->
+<div class="header">
+    NHÂN VIÊN - KIỂM TRA TỒN KHO
+</div>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
 
     <a href="/staff/dashboard">🏠 Dashboard</a>
 
-    <a href="/staff/products">👟 Quản lý sản phẩm</a>
+    <a href="javascript:void(0)" onclick="toggleMenu()">📦 Xử lý đơn hàng</a>
+    <div class="submenu" id="submenu">
+        <a href="/staff/returns">🔄 Trả hàng</a>
+        <a href="/staff/returns">🔁 Đổi hàng</a>
+        <a href="/staff/orders">📦 Cập nhật đơn</a>
+    </div>
 
-    <a href="/staff/inventory" class="active">📦 Quản lý nhập hàng</a>
+    <a href="/staff/inventory" class="active">📦 Kiểm tra tồn kho</a>
 
-    <a href="/staff/promotions">🎁 Quản lý khuyến mãi</a>
-
-    <a href="/staff/staff">👤 Quản lý nhân viên</a>
-
-    <a href="/staff/reports">📊 Báo cáo</a>
+    <a href="/staff/promotion">🏷️ Khuyến mãi</a>
 
     <form method="POST" action="/logout">
         @csrf
-        <button>🚪 Đăng xuất</button>
+        <button class="btn btn-danger w-100 mt-2">🚪 Đăng xuất</button>
     </form>
 
 </div>
@@ -92,13 +109,14 @@
 <!-- CONTENT -->
 <div class="content">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>📦 Tồn kho sản phẩm</h3>
+    <h3 class="mb-4">📦 Tồn kho sản phẩm</h3>
 
-        <table class="table">
-            <thead>
+    <div class="card-box shadow-sm">
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
                 <tr>
-                    <th>Sản phẩm</th>
+                    <th>Tên sản phẩm</th>
                     <th>Tồn kho</th>
                     <th>Đã bán</th>
                     <th>Trạng thái</th>
@@ -107,19 +125,47 @@
 
             <tbody>
                 @foreach($products as $p)
+                @php
+                    $qty = $p->inventory->quantity ?? 0;
+                    $sold = $p->inventory->sold_quantity ?? 0;
+
+                    if ($qty == 0) {
+                        $status = 'Hết hàng';
+                        $class = 'badge-out';
+                    } elseif ($qty < 5) {
+                        $status = 'Sắp hết';
+                        $class = 'badge-low';
+                    } else {
+                        $status = 'Còn hàng';
+                        $class = 'badge-ok';
+                    }
+                @endphp
+
                 <tr>
                     <td>{{ $p->name }}</td>
-                    <td>{{ $p->inventory->quantity ?? 0 }}</td>
-                    <td>{{ $p->inventory->sold_quantity ?? 0 }}</td>
-                    <td>{{ $p->inventory->status ?? 'N/A' }}</td>
+                    <td>{{ $qty }}</td>
+                    <td>{{ $sold }}</td>
+                    <td>
+                        <span class="badge {{ $class }}">
+                            {{ $status }}
+                        </span>
+                    </td>
                 </tr>
-                 @endforeach
+                @endforeach
             </tbody>
+
         </table>
+
     </div>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleMenu() {
+    let menu = document.getElementById("submenu");
+    menu.classList.toggle("active");
+}
+</script>
 
 </body>
 </html>

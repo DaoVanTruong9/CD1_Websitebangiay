@@ -389,9 +389,15 @@
                     </button>
 
                 <!-- THÊM GIỎ -->
-                <button class="btn btn-danger add-to-cart" data-id="{{ $p->id }}">
-                    <i class="fa fa-shopping-cart"></i>
-                </button>
+                @php
+                    $qty = $p->inventory->quantity ?? 0;
+                @endphp
+
+                @if($qty > 0)
+                    <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                        <i class="fa fa-shopping-cart"></i>
+                    </button>
+                @endif
 
             </div>
         </div>
@@ -434,12 +440,25 @@
                         <p><b>Mã SP:</b> SP{{ $p->id }}</p>
 
                         <p>
-                            <b>Tình trạng:</b>
-                            @if($p->stock > 0)
-                                <span class="text-success">Còn hàng</span>
-                            @else
-                                <span class="text-danger">Hết hàng</span>
-                            @endif
+                            @php
+                                $qty = $p->inventory->quantity ?? 0;
+
+                                if ($qty == 0) {
+                                    $status = 'Hết hàng';
+                                    $class = 'text-secondary';
+                                } elseif ($qty < 5) {
+                                    $status = 'Sắp hết';
+                                    $class = 'text-danger';
+                                } else {
+                                    $status = 'Còn hàng';
+                                    $class = 'text-success';
+                                }
+                            @endphp
+
+                            <p>
+                                <b>Tình trạng:</b>
+                                <span class="{{ $class }}">{{ $status }}</span>
+                            </p>
                         </p>
 
                         <p class="text-danger fs-5 fw-bold">
@@ -475,9 +494,15 @@
                         </div>
 
                         <!-- ADD CART -->
-                        <button class="btn btn-danger mx-1 add-to-cart"data-id="{{ $p->id }}">
-                            <i class="fa fa-shopping-cart"> Thêm vào giỏ hàng</i>
-                        </button>
+                        @if($qty == 0)
+    <button class="btn btn-secondary mx-1" disabled>
+        <i class="fa fa-ban"></i> Hết hàng
+    </button>
+@else
+    <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+        <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+    </button>
+@endif
 
                     </div>
                 </div>
