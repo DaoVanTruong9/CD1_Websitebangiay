@@ -38,6 +38,12 @@ class AuthController extends Controller
     ])){
         $request->session()->regenerate();
 
+    $user = Auth::user();
+    
+    if ($user->status == 'locked') {
+        Auth::logout();
+        return back()->with('error', 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên');
+    }
         // PHÂN QUYỀN
         $role = Auth::user()->role;
 

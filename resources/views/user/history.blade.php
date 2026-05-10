@@ -337,6 +337,18 @@
                 <span class="status paid">Hoàn thành</span>
             @elseif($order->status == 'shipping')
                 <span class="status paid">Đang giao</span>
+            @elseif($order->status == 'returned')
+                <span class="status bg-danger text-white px-2 py-1 rounded">
+                    Đã trả hàng
+                </span> 
+            @elseif($order->status == 'exchange')
+                <span class="status bg-primary text-white px-2 py-1 rounded">
+                    Đang đổi hàng
+                </span>
+            @elseif($order->status == 'cancelled')  
+                <span class="status bg-secondary text-white px-2 py-1 rounded">
+                    Đã hủy
+                </span>
             @else
                 <span class="status pending">Khác</span>
             @endif
@@ -346,6 +358,7 @@
     <hr>
 
     <!-- ITEMS -->
+    
     @foreach($order->items as $item)
 
     <div class="product-item">
@@ -368,6 +381,27 @@
                 data-order="{{ $order->id }}">
             ⭐ Đánh giá
         </button>
+
+        @if($order->status == 'completed')
+        <div class="mt-2 d-flex gap-2">
+            <button type="button"
+                class="btn btn-outline-danger btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#returnModal"
+                data-order="{{ $order->id }}"
+                data-product="{{ $item->product_id }}"
+                data-type="return">🔄 Trả hàng</button>
+
+            <button type="button"
+                class="btn btn-outline-primary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#returnModal"
+                data-order="{{ $order->id }}"
+                data-product="{{ $item->product_id }}"
+                data-type="exchange">🔁 Đổi hàng</button>
+
+        </div>
+        @endif
 
     </div>
 
@@ -431,8 +465,80 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="returnModal">
 
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form action="/returns/store" method="POST">
+                @csrf
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Yêu cầu trả / đổi hàng
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           name="order_id"
+                           id="return-order">
+
+                    <input type="hidden"
+                           name="product_id"
+                           id="return-product">
+
+                    <label>Loại yêu cầu</label>
+
+                    <select name="type" class="form-control mb-3">
+                        <option value="return">Trả hàng</option>
+                        <option value="exchange">Đổi hàng</option>
+                    </select>
+
+                    <textarea name="reason"
+                              class="form-control"
+                              placeholder="Nhập lý do..."
+                              required></textarea>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-danger w-100">
+                        Gửi yêu cầu
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const returnModal = document.getElementById('returnModal');
+
+returnModal.addEventListener('show.bs.modal', function (event) {
+
+    const button = event.relatedTarget;
+
+    const orderId = button.getAttribute('data-order');
+    const productId = button.getAttribute('data-product');
+    const type = button.getAttribute('data-type');
+
+    document.getElementById('return-order').value = orderId;
+    document.getElementById('return-product').value = productId;
+
+    // tự chọn loại
+    document.querySelector('select[name="type"]').value = type;
+});
+</script>
 
 <script>
 const reviewModal = document.getElementById('reviewModal');

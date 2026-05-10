@@ -1,11 +1,16 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Inventory;
+use App\Models\ReturnRequest;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RevenueExport;
+use App\Exports\BestSellingExport;
+
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
@@ -78,22 +83,6 @@ class OrderController extends Controller
         return back()->with('success', 'Cập nhật thành công');
     }
 
-    public function returns()
-    {
-        $orders = Order::where('status','delivered')->get();
-        return view('staff.returns', compact('orders'));
-    }
-
-    public function processReturn($id)
-    {
-        $order = Order::find($id);
-        $order->status = 'returned';
-        $order->save();
-
-        return back()->with('success','Đã xử lý trả hàng');
-    }
-
-
     public function checkout(Request $request)
     {
         if (!Auth::check()) {
@@ -118,8 +107,13 @@ class OrderController extends Controller
             $total += $item['price'] * $item['quantity'];
         }
 
-        if ($request->coupon == 'SALE10') {
-            $total *= 0.9;
+        $discount = 0;
+
+        if (session()->has('coupon')) {
+            $coupon = session('coupon');
+
+            $discount = $total * $coupon['discount'] / 100;
+            $total = $total - $discount;
         }
 
         // ❗ KHÔNG trừ kho ở đây nữa
@@ -129,6 +123,10 @@ class OrderController extends Controller
             'phone' => $request->phone,
             'address' => $request->address,
             'total_price' => $total,
+
+            'coupon_code' => session('coupon.code'),
+            'discount_amount' => $discount,
+
             'status' => 'pending',
             'payment_method' => $request->payment ?? 'cod',
             'payment_status' => $request->payment == 'bank' ? 'pending' : 'cod'
@@ -144,6 +142,7 @@ class OrderController extends Controller
         }
 
         session()->forget('cart');
+        session()->forget('coupon');
 
         if ($request->payment == 'cod') {
             return redirect('/orders/my')->with('success', 'Đặt hàng COD thành công');
@@ -298,7 +297,7 @@ class OrderController extends Controller
 
     public function applyCoupon(Request $request)
     {
-        $coupon = Coupon::where('code', $request->code)->first();
+        $coupon = \App\Models\Coupon::where('code', $request->code)->first();
 
         if (!$coupon) {
             return back()->with('error', 'Mã không tồn tại');
@@ -320,6 +319,104 @@ class OrderController extends Controller
             ]
         ]);
 
-        return back()->with('success', 'Áp dụng mã thành công');
+        return response()->json([
+            'success'=> 'Áp dụng mã thành công',
+            'code' => $coupon->code,
+            'discount' => $coupon->discount
+        ]);
+    }
+
+    public function promotion()
+    {
+        $coupons = Coupon::all();
+        return view('staff.promotion', compact('coupons'));
+    }
+
+    public function storeReturn(Request $request)
+    {
+        ReturnRequest::create([
+            'order_id' => $request->order_id,
+            'product_id' => $request->product_id,
+            'user_id' => Auth::id(),
+            'type' => $request->type,
+            'reason' => $request->reason,
+            'status' => 'pending'
+        ]);
+
+        return back()->with('success', 'Đã gửi yêu cầu thành công');
+    }
+
+    public function returns()
+    {
+        $returns = ReturnRequest::where('type','return')
+                ->latest()
+                ->get();
+
+        return view('staff.returns', compact('returns'));
+    }
+
+    public function exchanges()
+    {
+        $returns = ReturnRequest::where('type','exchange')
+                ->latest()
+                ->get();
+
+        return view('staff.exchanges', compact('returns'));
+    }
+
+    public function processReturn(Request $request, $id)
+{
+    $return = ReturnRequest::findOrFail($id);
+
+    // cập nhật trạng thái request
+    $return->status = $request->status;
+    $return->save();
+
+    // chỉ xử lý khi duyệt
+    if ($request->status == 'approved') {
+
+        $order = Order::find($return->order_id);
+
+        $product = Product::find($return->product_id);
+
+        // ===== TRẢ HÀNG =====
+        if ($return->type == 'return') {
+
+            // cộng lại kho
+            if ($product && $product->inventory) {
+
+                $product->inventory->quantity += 1;
+
+                $product->inventory->sold_quantity -= 1;
+
+                $product->inventory->updateStatus();
+
+                $product->inventory->save();
+            }
+
+            // cập nhật trạng thái đơn
+            $order->status = 'returned';
+            $order->save();
+        }
+
+        // ===== ĐỔI HÀNG =====
+        if ($return->type == 'exchange') {
+
+            $order->status = 'exchange';
+            $order->save();
+        }
+    }
+
+    return back()->with('success', 'Đã xử lý yêu cầu');
+}
+
+    public function exportRevenue()
+    {
+        return Excel::download(new RevenueExport,'bao_cao_doanh_thu.xlsx');
+    }
+
+    public function exportBestSelling()
+    {
+        return Excel::download(new BestSellingExport,'san_pham_ban_chay.xlsx');
     }
 }

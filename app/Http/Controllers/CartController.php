@@ -207,6 +207,7 @@ public function removeAjax(Request $request)
 
     return response()->json(['success' => true]);
 }
+
 public function checkoutPage()
 {
     $cart = session('cart', []);
@@ -220,8 +221,11 @@ public function checkoutPage()
         $total += $item['price'] * $item['quantity'];
     }
 
+    session()->forget('coupon');
+
     return view('user.checkout', compact('cart', 'total'));
 }
+
 public function checkout(Request $request)
 {
     $cart = session('cart', []);

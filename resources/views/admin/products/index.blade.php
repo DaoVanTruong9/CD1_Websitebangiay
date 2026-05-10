@@ -85,32 +85,37 @@
 <div class="header">QUẢN LÝ SẢN PHẨM</div>
 
 <div class="sidebar">
-    <a href="/admin/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+    <a href="/admin/dashboard" class="{{ request()->is('admin/dashboard') ? 'active' : '' }}">
     🏠 Dashboard
 </a>
 
-<a href="/admin/products" class="{{ request()->is('products*') ? 'active' : '' }}">
+<a href="/admin/products" class="{{ request()->is('admin/products*') ? 'active' : '' }}">
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/admin/imports" class="{{ request()->is('orders*') ? 'active' : '' }}">
+<a href="/admin/imports" class="{{ request()->is('admin/imports*') ? 'active' : '' }}">
     📦 Quản lý nhập hàng
 </a>
 
-<a href="#" class="{{ request()->is('customers*') ? 'active' : '' }}">
+<a href="/admin/coupons" class="{{ request()->is('admin/coupons*') ? 'active' : '' }}">
     👤 Quản lý khuyến mãi
 </a>
 
-<a href="#" class="{{ request()->is('users*') ? 'active' : '' }}">
+<a href="/admin/users" class="{{ request()->is('users*') ? 'active' : '' }}">
     🔐 Quản lý nhân viên
 </a>
 
     <a href="#" onclick="toggleMenu()">📊 Báo cáo</a>
     <div class="submenu" id="submenu">
-        <a href="#">- Doanh thu</a>
-        <a href="#">- Sản phẩm bán chạy</a>
+        <a href="/admin/revenue" class="{{ request()->is('admin/revenue') ? 'active' : '' }}">
+            - Doanh thu
+        </a>
+
+        <a href="/admin/best-selling" class="{{ request()->is('admin/best-selling') ? 'active' : '' }}">
+            - Sản phẩm bán chạy
+        </a>  
     </div>
-    
+
     <form action="/logout" method="POST">
         @csrf
         <button>🚪 Đăng xuất</button>

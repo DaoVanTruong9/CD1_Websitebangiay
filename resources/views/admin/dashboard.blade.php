@@ -49,7 +49,7 @@
             background: #444;
         }
         .sidebar a.active {
-            background: #000;
+            background: #0b6fc7;
             font-weight: bold;
             border-left: 4px solid #0b6fc7;
         }
@@ -101,30 +101,35 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-    <a href="/admin/dashboard" class="{{ request()->is('dashboard') ? 'active' : '' }}">
+    <a href="/admin/dashboard" class="{{ request()->is('admin/dashboard') ? 'active' : '' }}">
     🏠 Dashboard
 </a>
 
-<a href="/admin/products" class="{{ request()->is('products*') ? 'active' : '' }}">
+<a href="/admin/products" class="{{ request()->is('admin/products*') ? 'active' : '' }}">
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/admin/imports" class="{{ request()->is('inventory*') ? 'active' : '' }}">
+<a href="/admin/imports" class="{{ request()->is('admin/imports*') ? 'active' : '' }}">
     📦 Quản lý nhập hàng
 </a>
 
-<a href="/admin/coupons" class="{{ request()->is('customers*') ? 'active' : '' }}">
+<a href="/admin/coupons" class="{{ request()->is('admin/coupons*') ? 'active' : '' }}">
     👤 Quản lý khuyến mãi
 </a>
 
-<a href="#" class="{{ request()->is('users*') ? 'active' : '' }}">
+<a href="/admin/users" class="{{ request()->is('admin/users*') ? 'active' : '' }}">
     🔐 Quản lý nhân viên
 </a>
 
    <a href="#" onclick="toggleMenu()">📊 Báo cáo</a>
    <div class="submenu" id="submenu">
-        <a href="#">- Doanh thu</a>
-        <a href="#">- Sản phẩm bán chạy</a>   
+        <a href="/admin/revenue" class="{{ request()->is('admin/revenue') ? 'active' : '' }}">
+            - Doanh thu
+        </a>
+
+        <a href="/admin/best-selling" class="{{ request()->is('admin/best-selling') ? 'active' : '' }}">
+            - Sản phẩm bán chạy
+        </a>   
     </div>
 
     <form method="POST" action="/logout">
@@ -187,10 +192,23 @@
     </div>
 
     <!-- ===== CHART ===== -->
-    <div class="card p-3 mb-4">
-        <h5>Biểu đồ doanh thu</h5>
+    <div class="card shadow-sm border-0 p-4 mb-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+            📈 Biểu đồ doanh thu
+        </h5>
+
+        <span class="badge bg-primary">
+            Theo tháng
+        </span>
+    </div>
+
+    <div style="height: 400px;">
         <canvas id="chart"></canvas>
     </div>
+
+</div>
 
     <!-- ===== TOP PRODUCT ===== -->
     <div class="card p-3 mb-4">
@@ -244,28 +262,158 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx = document.getElementById('chart');
+
+const ctx = document.getElementById('chart').getContext('2d');
 
 const revenueData = @json($monthlyRevenue);
 
-const labels = Object.keys(revenueData).map(m => 'T' + m);
+const labels = Object.keys(revenueData).map(m => 'Tháng ' + m);
+
 const data = Object.values(revenueData);
 
+// ===== GRADIENT =====
+const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+
+gradient.addColorStop(0, 'rgba(11,111,199,0.4)');
+gradient.addColorStop(1, 'rgba(11,111,199,0.02)');
+
+// ===== CHART =====
 new Chart(ctx, {
+
     type: 'line',
+
     data: {
+
         labels: labels,
+
         datasets: [{
-            label: 'Doanh thu',
+
+            label: 'Doanh thu (VNĐ)',
+
             data: data,
-            borderWidth: 2
+
+            fill: true,
+
+            backgroundColor: gradient,
+
+            borderColor: '#0b6fc7',
+
+            borderWidth: 4,
+
+            tension: 0.4,
+
+            pointBackgroundColor: '#0b6fc7',
+
+            pointBorderColor: '#fff',
+
+            pointRadius: 6,
+
+            pointHoverRadius: 9,
+
+            pointBorderWidth: 3,
+
         }]
+    },
+
+    options: {
+
+        responsive: true,
+
+        maintainAspectRatio: false,
+
+        interaction: {
+            intersect: false,
+            mode: 'index',
+        },
+
+        plugins: {
+
+            legend: {
+                display: true,
+                labels: {
+                    color: '#333',
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    }
+                }
+            },
+
+            tooltip: {
+
+                backgroundColor: '#222',
+
+                titleColor: '#fff',
+
+                bodyColor: '#fff',
+
+                padding: 12,
+
+                cornerRadius: 10,
+
+                callbacks: {
+
+                    label: function(context) {
+
+                        return ' ' + Number(context.raw)
+                            .toLocaleString('vi-VN') + ' đ';
+                    }
+                }
+            }
+        },
+
+        scales: {
+
+            y: {
+
+                beginAtZero: true,
+
+                ticks: {
+
+                    color: '#666',
+
+                    callback: function(value) {
+                        return value.toLocaleString('vi-VN') + 'đ';
+                    }
+                },
+
+                grid: {
+                    color: 'rgba(0,0,0,0.05)'
+                }
+            },
+
+            x: {
+
+                ticks: {
+                    color: '#666'
+                },
+
+                grid: {
+                    display: false
+                }
+            }
+        },
+
+        animation: {
+
+            duration: 2000,
+
+            easing: 'easeInOutQuart'
+        }
     }
 });
+
+// ===== MENU =====
 function toggleMenu(){
+
     let menu = document.getElementById('submenu');
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+
+    menu.style.display =
+        menu.style.display === 'block'
+        ? 'none'
+        : 'block';
 }
+
 </script>
 
 </body>

@@ -74,7 +74,7 @@
 <body>
 
 <div class="header">
-    NHÂN VIÊN - XỬ LÝ TRẢ HÀNG
+    NHÂN VIÊN - XỬ LÝ ĐỔI HÀNG
 </div>
 
 <div class="sidebar">
@@ -114,7 +114,7 @@
 
 <div class="content">
 
-    <h3 class="mb-4">Danh sách yêu cầu trả hàng</h3>
+    <h3 class="mb-4">Danh sách yêu cầu đổi hàng</h3>
 
     @forelse($returns as $r)
 
@@ -154,30 +154,24 @@
 
         <div class="d-flex align-items-center gap-3">
 
-    @if($r->product)
-        <img src="{{ asset('images/' . $r->product->image) }}"
-             width="80"
-             class="rounded border">
-    @else
-        <img src="{{ asset('images/no-image.png') }}"
-             width="80"
-             class="rounded border">
-    @endif
+            @if($r->product)
+                <img src="{{ asset('images/' . $r->product->image) }}">
+            @else
+                <img src="{{ asset('images/no-image.png') }}">
+            @endif
 
-    <div>
+            <div>
+                <div class="fw-bold">
+                    {{ $r->product->name }}
+                </div>
 
-        <div class="fw-bold">
-            {{ $r->product->name ?? 'Sản phẩm đã bị xóa' }}
+                <small>
+                    Khách hàng:
+                    {{ $r->user->name }}
+                </small>
+            </div>
+
         </div>
-
-        <small>
-            Khách hàng:
-            {{ $r->user->name ?? 'Không xác định' }}
-        </small>
-
-    </div>
-
-</div>
 
         <hr>
 
@@ -199,7 +193,7 @@
                        value="approved">
 
                 <button class="btn btn-success">
-                    ✅ Duyệt trả hàng
+                    ✅ Duyệt đổi hàng
                 </button>
             </form>
 
@@ -225,7 +219,7 @@
     @empty
 
     <div class="alert alert-info">
-        Chưa có yêu cầu trả hàng
+        Chưa có yêu cầu đổi hàng
     </div>
 
     @endforelse

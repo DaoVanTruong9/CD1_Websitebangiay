@@ -109,7 +109,7 @@
     👟 Quản lý sản phẩm
 </a>
 
-<a href="/admin/imports" class="{{ request()->is('admin/import*') ? 'active' : '' }}">
+<a href="/admin/imports" class="{{ request()->is('admin/imports*') ? 'active' : '' }}">
     📦 Quản lý nhập hàng
 </a>
 
@@ -129,7 +129,7 @@
 
         <a href="/admin/best-selling" class="{{ request()->is('admin/best-selling') ? 'active' : '' }}">
             - Sản phẩm bán chạy
-        </a>  
+        </a>    
     </div>
 
     <form method="POST" action="/logout">
@@ -141,62 +141,102 @@
 <!-- CONTENT -->
 <div class="content">
 
-<h3>Quản lý mã khuyến mãi</h3>
+    <h3 class="mb-4">Danh sách nhân viên</h3>
 
-<!-- TẠO MÃ -->
-<form method="POST" action="/admin/coupons/store" class="mb-3">
-    @csrf
+    <!-- TẠO NHÂN VIÊN -->
+    <div class="card p-3 mb-4 card-box shadow-sm">
+        <h5 class="mb-3">➕ Tạo nhân viên</h5>
 
-    <input type="text" name="code" placeholder="Mã (SALE10)" required>
-    <input type="number" name="discount" placeholder="% giảm" required>
-    <input type="number" name="quantity" placeholder="Số lượng" required>
-    <input type="date" name="expired_at" required>
+        <form method="POST" action="/admin/users/store">
+            @csrf
 
-    <button>Tạo</button>
-</form>
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="name" class="form-control" placeholder="Tên nhân viên" required>
+                </div>
 
-<hr>
+                <div class="col-md-4">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+                </div>
 
-<!-- DANH SÁCH -->
-<table border="1" cellpadding="10">
-    <tr>
-        <th>Mã</th>
-        <th>Giảm (%)</th>
-        <th>Số lượng</th>
-        <th>Hết hạn</th>
-        <th>Trạng thái</th>
-        <th></th>
-    </tr>
+                <div class="col-md-4">
+                    <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required>
+                </div>
+            </div>
 
-    @foreach($coupons as $c)
-    @php
-        $expired = now()->gt($c->expired_at);
-    @endphp
+            <button class="btn btn-primary mt-3">Tạo nhân viên</button>
+        </form>
+    </div>
 
-    <tr>
-        <td>{{ $c->code }}</td>
-        <td>{{ $c->discount }}%</td>
-        <td>{{ $c->quantity }}</td>
-        <td>{{ $c->expired_at }}</td>
+    <!-- DANH SÁCH -->
+    <div class="card p-3 shadow-sm">
+        <h5 class="mb-3">👥 Nhân viên hiện có</h5>
 
-        <td>
-            {{ $expired ? 'Hết hạn' : 'Còn hạn' }}
-        </td>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Tên</th>
+                    <th>Email</th>
+                    <th>Trạng thái</th>
+                    <th width="250">Hành động</th>
+                </tr>
+            </thead>
 
-        <td>
-            <form method="POST" action="/admin/coupons/delete/{{ $c->id }}">
-                @csrf
-                <button>Xóa</button>
-            </form>
-        </td>
-    </tr>
-    @endforeach
-</table>
+            <tbody>
+                @foreach($users as $u)
+                <tr>
+                    <td>{{ $u->id }}</td>
+                    <td>{{ $u->name }}</td>
+                    <td>{{ $u->email }}</td>
+
+                    <td>
+                        @if($u->status == 'active')
+                            <span class="badge bg-success">Hoạt động</span>
+                        @else
+                            <span class="badge bg-danger">Đã khóa</span>
+                        @endif
+                    </td>
+
+                    <td>
+
+                        <!-- KHÓA / MỞ -->
+                        <form method="POST" action="/admin/users/toggle/{{ $u->id }}" class="d-inline">
+                            @csrf
+                            <button class="btn btn-warning btn-sm">
+                                {{ $u->status == 'active' ? 'Khóa' : 'Mở khóa' }}
+                            </button>
+                        </form>
+
+                        <!-- RESET PASSWORD -->
+                        <form method="POST" action="/admin/users/reset/{{ $u->id }}" class="d-inline">
+                            @csrf
+                            <button class="btn btn-info btn-sm">Reset mật khẩu</button>
+                        </form>
+
+                    </td>
+                </tr>
+                @endforeach
+
+                <!-- DEMO nếu chưa có DB -->
+                @if(empty($users) || count($users) == 0)
+                <tr>
+                    <td>1</td>
+                    <td>Nhân viên</td>
+                    <td>nhanvien@gmail.com</td>
+                    <td><span class="badge bg-success">Hoạt động</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm">Khóa</button>
+                        <button class="btn btn-info btn-sm">Reset mật khẩu</button>
+                    </td>
+                </tr>
+                @endif
+
+            </tbody>
+        </table>
+    </div>
 
 </div>
-
-<!-- CHART -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 function toggleMenu(){

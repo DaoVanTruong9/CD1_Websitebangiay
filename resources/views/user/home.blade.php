@@ -266,6 +266,7 @@
                     <a class="nav-link" href="/orders/history">Lịch sử</a>
                 </li>
             </ul>
+            
 
             <!-- SEARCH -->
             <form class="d-flex me-3" method="GET" action="/">

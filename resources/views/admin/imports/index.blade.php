@@ -46,7 +46,7 @@
         }
 
         .sidebar a.active {
-            background: #000;
+            background: #0b6fc7;
             font-weight: bold;
             border-left: 4px solid #0b6fc7;
         }
@@ -57,12 +57,26 @@
             background: #f5f5f5;
             min-height: 100vh;
         }
+        .submenu {
+            padding-left: 20px;
+            display: none;
+        }
 
         .card-box {
             background: #fff;
             border-radius: 10px;
             padding: 15px;
         }
+        @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
     </style>
 </head>
 
@@ -86,30 +100,23 @@
         📦 Quản lý nhập hàng
     </a>
 
-    <a href="#" class="">
+    <a href="/admin/coupons" class="{{ request()->is('customers*') ? 'active' : '' }}">
         🎁 Quản lý khuyến mãi
     </a>
 
-    <a href="#" class="">
-        👤 Quản lý nhân viên
-    </a>
-
-    <a href="/admin/reports" class="{{ request()->is('admin/reports*') ? 'active' : '' }}">
-        📊 Báo cáo
+    <a href="/admin/users" class="{{ request()->is('admin/users*') ? 'active' : '' }}">
+        🔐 Quản lý nhân viên
     </a>
     
-    <div class="submenu" id="submenu"
-     style="{{ request()->is('report*') ? 'display:block' : 'display:none' }}">
+    <a href="#" onclick="toggleMenu()">📊 Báo cáo</a>
+   <div class="submenu" id="submenu">
+        <a href="/admin/revenue" class="{{ request()->is('admin/revenue') ? 'active' : '' }}">
+            - Doanh thu
+        </a>
 
-    <a href="/report/revenue" 
-       class="{{ request()->is('report/revenue') ? 'active' : '' }}">
-        - Doanh thu
-    </a>
-
-    <a href="/report/top-product" 
-       class="{{ request()->is('report/top-product') ? 'active' : '' }}">
-        - Sản phẩm bán chạy
-    </a>
+        <a href="/admin/best-selling" class="{{ request()->is('admin/best-selling') ? 'active' : '' }}">
+            - Sản phẩm bán chạy
+        </a>  
     </div>
 
     <form method="POST" action="/logout">
@@ -220,6 +227,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script>
+function toggleMenu(){
+    let menu = document.getElementById('submenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+</script>
 </body>
 </html>

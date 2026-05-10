@@ -12,6 +12,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserController;
 use App\Models\Inventory;
 
 /*
@@ -66,6 +67,8 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::post('/orders/received/{id}', [OrderController::class, 'markReceived'])->middleware('auth');
         Route::get('/orders/history', [OrderController::class, 'history']);
 
+        Route::post('/returns/store', [OrderController::class, 'storeReturn']);
+
         // Payment
         Route::get('/payment/bank/{id}', [OrderController::class, 'bankPayment']);
         Route::get('/payment/qr/{id}', [OrderController::class, 'qrPayment']);
@@ -73,7 +76,7 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
 
         Route::post('/review/store', [ReviewController::class, 'store']);
     });
-
+    Route::post('/apply-coupon', [OrderController::class, 'applyCoupon']);
     /*
     |--------------------------------------------------------------------------
     | STAFF
@@ -95,12 +98,17 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::get('/returns', [OrderController::class, 'returns']);
         Route::post('/returns/process/{id}', [OrderController::class, 'processReturn']);
 
+        Route::get('/exchanges', [OrderController::class, 'exchanges']);
+        Route::post('/exchanges/process/{id}', [OrderController::class,'processReturn']);
+
         // Inventory
         Route::get('/inventory', [InventoryController::class, 'index']);
 
         // Promotion
-        Route::get('/promotion', [ProductController::class, 'promotion']);
-        Route::post('/promotion/apply/{id}', [ProductController::class, 'applyPromotion']);
+        Route::get('/promotion', [OrderController::class, 'promotion']);
+        Route::post('/promotion/apply/{id}', [OrderController::class, 'applyPromotion']);
+
+        
         Route::get('/orders/confirm-payment/{id}', [OrderController::class, 'confirmPayment']);
         
     });
@@ -129,6 +137,22 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         // Route::get('/inventory', [InventoryController::class, 'index']);
 
         // REPORT
-        Route::get('/reports', [OrderController::class, 'report']);
+        Route::get('/revenue', [ProductController::class, 'revenueReport']);
+        Route::get('/best-selling', [ProductController::class, 'bestSellingProducts']);
+
+        // Coupon
         Route::get('/coupons', [CouponController::class, 'index']);
+        Route::post('/coupons/store', [CouponController::class, 'store']);
+        Route::post('/coupons/delete/{id}', [CouponController::class, 'delete']);
+
+        // Users
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users/store', [UserController::class, 'store']);
+        Route::post('/users/toggle/{id}', [UserController::class, 'toggle']);
+        Route::post('/users/reset/{id}', [UserController::class, 'resetPassword']);
+
+        Route::get('/revenue/export',[OrderController::class, 'exportRevenue']);
+        Route::get('/best-selling/export',[OrderController::class, 'exportBestSelling']);
+
     });
+
