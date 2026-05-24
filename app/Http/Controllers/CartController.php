@@ -29,6 +29,16 @@ class CartController extends Controller
         ]);
     }
 
+    $inventory = $product->inventory;
+
+    if (!$inventory || $inventory->quantity < $request->quantity) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Sản phẩm không đủ tồn kho'
+        ]);
+    }
+    
     $cart = session()->get('cart', []);
 
     $key = $request->product_id . '_' . $request->size;
@@ -78,7 +88,7 @@ class CartController extends Controller
                 'quantity' => $request->quantity
             ]);
         }
-
+    
         return back();
     }
     public function miniCart()

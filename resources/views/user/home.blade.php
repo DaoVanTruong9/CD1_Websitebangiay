@@ -242,9 +242,9 @@
 
 <body>
 <div class="container">
+
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg bg-white shadow-sm px-3 py-2">
-    {{-- <div class="container"> --}}
 
         <!-- LOGO -->
         <a class="navbar-brand fw-bold text-danger" href="/">
@@ -300,72 +300,159 @@
 
                 <!-- USER -->
                 @if(Auth::check())
-                    <!-- ĐÃ LOGIN -->
-                    <div class="dropdown">
-                        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
-                            data-bs-toggle="dropdown">
-                            <i class="fa fa-user me-2"></i>
-                            <span>{{ Auth::user()->name }}</span>
-                        </a>
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
+    <!-- ĐÃ LOGIN -->
+    <div class="dropdown">
 
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    <i class="fa fa-user-circle me-2"></i> Tài khoản
-                                </a>
-                            </li>
+        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
+           data-bs-toggle="dropdown">
 
-                            <!-- ADMIN -->
-                            @if(Auth::user()->role == 'admin')
-                                <li>
-                                    <a class="dropdown-item text-primary" href="/admin/dashboard">
-                                        <i class="fa fa-cog me-2"></i> Quản trị
-                                    </a>
-                                </li>
-                            @endif
+            <i class="fa fa-user me-2"></i>
+            <span>{{ Auth::user()->name }}</span>
+        </a>
 
-                            <!-- STAFF -->
-                            @if(Auth::user()->role == 'staff')
-                              <li>
-                                    <a class="dropdown-item text-warning" href="/staff/dashboard">
-                                        <i class="fa fa-briefcase me-2"></i> Nhân viên
-                                    </a>
-                                </li>
-                            @endif
+        <ul class="dropdown-menu dropdown-menu-end shadow">
 
-                            <li><hr class="dropdown-divider"></li>
+            <li>
+                <button class="dropdown-item"
+                        data-bs-toggle="modal"
+                        data-bs-target="#accountModal">
 
-                            <li>
-                                <form action="/logout" method="POST">
-                                    @csrf
-                                    <button class="dropdown-item text-danger">
-                                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    <i class="fa fa-user-circle me-2"></i>
+                    Tài khoản
+                </button>
+            </li>
 
-                    @else
+            {{-- ADMIN --}}
+            @if(Auth::user()->role === 'admin')
 
-                    <!-- CHƯA LOGIN -->
-                    <div class="d-flex align-items-center">
-                        <a href="/login" class="me-2 text-decoration-none fw-bold">
-                            <i class="fa fa-sign-in-alt"></i> Đăng nhập
-                        </a>
-                        <span>/</span>
-                        <a href="/register" class="ms-2 text-decoration-none fw-bold">
-                            Đăng ký</a>
+                <li>
+                    <a class="dropdown-item text-primary"
+                       href="/admin/dashboard">
+
+                        <i class="fa fa-cog me-2"></i>
+                        Quản trị
+                    </a>
+                </li>
+
+            @endif
+
+            {{-- STAFF --}}
+            @if(Auth::user()->role === 'staff')
+
+                <li>
+                    <a class="dropdown-item text-warning"
+                       href="/staff/dashboard">
+
+                        <i class="fa fa-briefcase me-2"></i>
+                        Nhân viên
+                    </a>
+                </li>
+
+            @endif
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+                <form action="/logout" method="POST">
+                    @csrf
+
+                    <button class="dropdown-item text-danger">
+
+                        <i class="fa fa-sign-out-alt me-2"></i>
+                        Đăng xuất
+                    </button>
+                </form>
+            </li>
+
+        </ul>
+    </div>
+
+@else
+
+    <!-- CHƯA LOGIN -->
+    <div class="d-flex align-items-center">
+
+        <a href="/login"
+           class="me-2 text-decoration-none fw-bold">
+
+            <i class="fa fa-sign-in-alt"></i>
+            Đăng nhập
+        </a>
+
+        <span>/</span>
+
+        <a href="/register"
+           class="ms-2 text-decoration-none fw-bold">
+
+            Đăng ký
+        </a>
+
+    </div>
+
+@endif
+
+            </nav>
+        </div>
+        <!-- MODAL TÀI KHOẢN -->
+<div class="modal fade" id="accountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-user-circle me-2"></i>
+                    Thông tin tài khoản
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body text-center">
+
+                <div class="mb-3">
+                    <i class="fa fa-user fa-4x text-primary"></i>
+                </div>
+
+                @if(Auth::check())
+
+                    <h5 class="fw-bold">
+                        {{ Auth::user()->name }}
+                    </h5>
+
+                    <p class="text-muted mb-1">
+                        {{ Auth::user()->email }}
+                    </p>
+
+                    <span class="badge bg-success px-3 py-2">
+                        {{ strtoupper(Auth::user()->role) }}
+                    </span>
+
+                @else
+
+                    <div class="text-danger">
+                        Bạn chưa đăng nhập
                     </div>
 
                 @endif
 
             </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary w-100"
+                        data-bs-dismiss="modal">
+                    Đóng
+                </button>
+            </div>
+
         </div>
     </div>
-</nav>
-
+</div>
+        
+    <div class="container">
     <!-- BANNER -->
     <div id="bannerCarousel" class="carousel slide banner-slide mt-3" data-bs-ride="carousel" data-bs-interval="2500">
         <div class="carousel-inner">
@@ -557,10 +644,30 @@
                             {{ number_format($p->price) }} đ
                         </p>
 
+                        @php
+                            $avg = round($p->reviews->avg('rating'), 1);
+                        @endphp
+
+                        <div class="mb-2">
+                            <b>Đánh giá:</b>
+
+                            @if($p->reviews->count() > 0)
+                                <span class="text-warning">⭐ {{ $avg }}/5
+                                </span>
+
+                            <small>
+                                ({{ $p->reviews->count() }} đánh giá)
+                            </small>
+
+                            @else
+                                <span class="text-muted"> Chưa có đánh giá </span>
+                            @endif
+                        </div>
+
                         <!-- COLOR -->
                         <div class="mb-2">
                             <label><b>Màu:</b></label>
-                            <select class="form-select" id="sizeSelect{{ $p->id }}">
+                            <select class="form-select" id="colorSelect{{ $p->id }}">
                                 <option>Đen</option>
                                 <option>Trắng</option>
                                 <option>Xanh</option>
@@ -585,6 +692,33 @@
                         <div class="mb-3">
                             <label><b>Số lượng:</b></label>
                             <input type="number" id="qty{{ $p->id }}" value="1" min="1" class="form-control">
+                        </div>
+
+                        <hr>
+                        <h6 class="fw-bold">Nhận xét khách hàng</h6>
+                        <div style="max-height:200px; overflow:auto;">
+                        @forelse($p->reviews as $r)
+
+                            <div class="border rounded p-2 mb-2">
+
+                                <div class="fw-bold">
+                                    {{ $r->user->name ?? 'Người dùng' }}
+                                </div>
+
+                                <div class="text-warning">
+                                    {{ str_repeat('⭐', $r->rating) }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ $r->created_at->format('d/m/Y') }}
+                                </small>
+
+                                <div>{{ $r->comment }}</div>
+                            </div>
+                        @empty
+                            <div class="text-muted"> Chưa có đánh giá nào </div>
+
+                        @endforelse
                         </div>
 
                         <!-- ADD CART -->
@@ -715,6 +849,26 @@
                             {{ number_format($p->price) }} đ
                         </p>
 
+                        @php
+                            $avg = round($p->reviews->avg('rating'), 1);
+                        @endphp
+
+                        <div class="mb-2">
+                            <b>Đánh giá:</b>
+
+                            @if($p->reviews->count() > 0)
+                                <span class="text-warning">⭐ {{ $avg }}/5
+                                </span>
+
+                            <small>
+                                ({{ $p->reviews->count() }} đánh giá)
+                            </small>
+
+                            @else
+                                <span class="text-muted"> Chưa có đánh giá </span>
+                            @endif
+                        </div>
+
                         <!-- COLOR -->
                         <div class="mb-2">
                             <label><b>Màu:</b></label>
@@ -741,6 +895,34 @@
                         <div class="mb-3">
                             <label><b>Số lượng:</b></label>
                             <input type="number" id="qty{{ $p->id }}"value="1" min="1" class="form-control">
+                        </div>  
+
+                        <hr>
+                        <h6 class="fw-bold">Nhận xét khách hàng</h6>
+                        <div style="max-height:200px; overflow:auto;">
+                        @forelse($p->reviews as $r)
+
+                            <div class="border rounded p-2 mb-2">
+
+                                <div class="fw-bold">
+                                    {{ $r->user->name ?? 'Người dùng' }}
+                                </div>
+
+                                <div class="text-warning">
+                                    {{ str_repeat('⭐', $r->rating) }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ $r->created_at->format('d/m/Y') }}
+                                </small>
+
+                                <div>{{ $r->comment }}</div>
+                            </div>
+                        @empty
+                            <div class="text-muted"> Chưa có đánh giá nào </div>
+
+                        @endforelse
+
                         </div>
 
                         <!-- ADD CART -->
@@ -984,5 +1166,8 @@ function loadMiniOrder() {
         });
 }
 </script>
+
+</div>
+
 </body>
 </html>

@@ -106,8 +106,8 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
 
         // Promotion
         Route::get('/promotion', [OrderController::class, 'promotion']);
-        Route::post('/promotion/apply/{id}', [OrderController::class, 'applyPromotion']);
-
+        Route::post('/promotion/apply', [OrderController::class, 'applyPromotion']);
+        Route::post('/apply-coupon', [OrderController::class, 'applyCoupon']);
         
         Route::get('/orders/confirm-payment/{id}', [OrderController::class, 'confirmPayment']);
         
@@ -133,9 +133,6 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::post('/imports/store', [ImportController::class, 'store']);
         Route::get('/imports/delete/{id}', [ImportController::class, 'destroy']);
 
-        // INVENTORY (CHỈ XEM)
-        // Route::get('/inventory', [InventoryController::class, 'index']);
-
         // REPORT
         Route::get('/revenue', [ProductController::class, 'revenueReport']);
         Route::get('/best-selling', [ProductController::class, 'bestSellingProducts']);
@@ -143,6 +140,7 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         // Coupon
         Route::get('/coupons', [CouponController::class, 'index']);
         Route::post('/coupons/store', [CouponController::class, 'store']);
+        Route::post('/coupons/update/{id}', [CouponController::class, 'update']);
         Route::post('/coupons/delete/{id}', [CouponController::class, 'delete']);
 
         // Users

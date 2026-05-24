@@ -27,11 +27,9 @@
             color: white;
             position: fixed;
         }
-        .submenu {
-        padding-left: 20px;
-        }
 
         .submenu {
+        padding-left: 20px;
         max-height: 0;
         overflow: hidden;
         background: #333;
@@ -92,7 +90,7 @@
     <a href="javascript:void(0)" onclick="toggleMenu()">📦 Xử lý đơn hàng</a>
     <div class="submenu" id="submenu">
         <a href="/staff/returns">🔄 Trả hàng</a>
-        <a href="/staff/returns">🔁 Đổi hàng</a>
+        <a href="/staff/exchanges">🔁 Đổi hàng</a>
         <a href="/staff/orders">📦 Cập nhật đơn</a>
     </div>
 

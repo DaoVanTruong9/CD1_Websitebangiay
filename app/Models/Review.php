@@ -11,6 +11,24 @@ class Review extends Model
         'product_id',
         'order_id',
         'rating',
-        'comment'
+        'comment',
     ];
+
+    // USER
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    // PRODUCT
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    // ORDER
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }

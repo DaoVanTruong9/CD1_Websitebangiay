@@ -373,16 +373,29 @@
             </div>
         </div>
 
-        <button type="button"
+        @php
+            $reviewed = \App\Models\Review::where('user_id', auth()->id())
+                ->where('product_id', $item->product_id)
+                ->where('order_id', $order->id)
+                ->exists();
+        @endphp
+
+        @if($reviewed)
+            <button class="btn btn-success btn-sm" disabled>
+                ✅ Đã đánh giá
+            </button>
+        @else
+
+            <button type="button"
                 class="btn btn-warning btn-sm review-btn"
                 data-bs-toggle="modal"
                 data-bs-target="#reviewModal"
                 data-product="{{ $item->product_id }}"
-                data-order="{{ $order->id }}">
-            ⭐ Đánh giá
-        </button>
+                data-order="{{ $order->id }}"> ⭐ Đánh giá </button>
 
-        @if($order->status == 'completed')
+        @endif
+
+        @if($order->status == 'completed' && !$reviewed)
         <div class="mt-2 d-flex gap-2">
             <button type="button"
                 class="btn btn-outline-danger btn-sm"

@@ -92,6 +92,15 @@
         }
     }
 
+        .card-box{
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-box:hover{
+    transform: translateY(-5px);
+}
+
     </style>
 </head>
 
@@ -208,6 +217,78 @@
         <canvas id="chart"></canvas>
     </div>
 
+    </div>
+
+    <div class="row mb-4">
+
+    <!-- DONUT -->
+    <div class="col-md-6">
+
+        <div class="card shadow-sm border-0 p-4 h-100">
+
+            <h5 class="fw-bold mb-4">
+                📦 Trạng thái đơn hàng
+            </h5>
+
+            <div style="height:300px;">
+                <canvas id="statusChart"></canvas>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="col-md-6">
+
+        <div class="card shadow-sm border-0 p-4 h-100">
+
+            <div class="d-flex justify-content-between">
+
+                <h5 class="fw-bold">
+                    ⚠️ Sắp hết hàng
+                </h5>
+
+                <span class="badge bg-danger">
+                    {{ $lowStockProducts->count() }}
+                </span>
+
+            </div>
+
+            <hr>
+
+            @foreach($lowStockProducts as $item)
+
+            <div class="mb-3">
+
+                <div class="d-flex justify-content-between">
+
+                    <strong>
+                        {{ $item->product->name ?? 'N/A' }}
+                    </strong>
+
+                    <span class="text-danger">
+                        {{ $item->quantity }}
+                    </span>
+
+                </div>
+
+                <div class="progress mt-2" style="height:8px;">
+
+                    <div class="progress-bar bg-danger"
+                        style="width: {{ min($item->quantity * 10, 100) }}%">
+                    </div>
+
+                </div>
+
+            </div>
+
+            @endforeach
+
+        </div>
+
+    </div>
+
 </div>
 
     <!-- ===== TOP PRODUCT ===== -->
@@ -231,6 +312,18 @@
         </table>
     </div>
 
+    <div class="card shadow-sm border-0 p-4 mb-4">
+
+    <h5 class="fw-bold mb-4">
+        👟 Top sản phẩm bán chạy
+    </h5>
+
+    <div style="height:400px;">
+        <canvas id="productChart"></canvas>
+    </div>
+
+</div>
+
     <!-- ===== ĐƠN GẦN ĐÂY ===== -->
     <div class="card p-3">
         <h5>Đơn hàng gần đây</h5>
@@ -249,7 +342,23 @@
                     <td>#{{ $o->id }}</td>
                     <td>{{ $o->customer_name }}</td>
                     <td>{{ number_format($o->total_price) }}đ</td>
-                    <td>{{ $o->status }}</td>
+                    <td>
+                    @if($o->status == 'pending')
+                        <span class="badge bg-warning">Chờ xử lý</span>
+
+                    @elseif($o->status == 'confirmed')
+                        <span class="badge bg-info">Đã xác nhận</span>
+
+                    @elseif($o->status == 'shipping')
+                        <span class="badge bg-primary">Đang giao</span>
+
+                    @elseif($o->status == 'completed')
+                        <span class="badge bg-success">Hoàn thành</span>
+
+                    @else
+                        <span class="badge bg-danger">Đã hủy</span>
+                    @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
@@ -416,5 +525,99 @@ function toggleMenu(){
 
 </script>
 
+<script>
+
+// ===== STATUS CHART =====
+const statusCtx = document
+    .getElementById('statusChart');
+
+const statusData = @json($orderStatus);
+
+new Chart(statusCtx, {
+
+    type: 'doughnut',
+
+    data: {
+
+        labels: Object.keys(statusData),
+
+        datasets: [{
+
+            data: Object.values(statusData),
+
+            backgroundColor: [
+                '#2196f3',
+                '#4caf50',
+                '#ff9800',
+                '#f44336',
+                '#9c27b0'
+            ],
+
+            borderWidth: 0
+        }]
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+</script>
+<script>
+
+// ===== TOP PRODUCT =====
+const productCtx =
+    document.getElementById('productChart');
+
+const topProducts = @json($topProducts);
+
+new Chart(productCtx, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: topProducts.map(
+            p => p.product?.name ?? 'N/A'
+        ),
+
+        datasets: [{
+
+            label: 'Đã bán',
+
+            data: topProducts.map(
+                p => p.total_sold
+            ),
+
+            backgroundColor: '#0b6fc7',
+
+            borderRadius: 10,
+        }]
+    },
+
+    options: {
+
+        indexAxis: 'y',
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+</script>
 </body>
 </html>

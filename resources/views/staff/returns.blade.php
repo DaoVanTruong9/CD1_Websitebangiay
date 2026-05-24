@@ -38,6 +38,7 @@
         }
 
         .submenu{
+            padding-left: 20px;
             max-height:0;
             overflow:hidden;
             background:#333;
@@ -86,17 +87,13 @@
     </a>
 
     <div class="submenu active" id="submenu">
-        <a href="/staff/returns" style="background:#444;">
+        <a href="/staff/returns" style="background: #2196f3;">
             🔄 Trả hàng
         </a>
 
-        <a href="/staff/exchanges">
-            🔁 Đổi hàng
-        </a>
+        <a href="/staff/exchanges">🔁 Đổi hàng</a>
 
-        <a href="/staff/orders">
-            📦 Cập nhật đơn
-        </a>
+        <a href="/staff/orders">📦 Cập nhật đơn</a>
     </div>
 
     <a href="/staff/inventory">📦 Kiểm tra tồn kho</a>

@@ -143,6 +143,12 @@
 
 <h3>Quản lý mã khuyến mãi</h3>
 
+@if(session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
 <!-- TẠO MÃ -->
 <form method="POST" action="/admin/coupons/store" class="mb-3">
     @csrf
@@ -158,7 +164,7 @@
 <hr>
 
 <!-- DANH SÁCH -->
-<table border="1" cellpadding="10">
+<table class="table table-bordered bg-white">
     <tr>
         <th>Mã</th>
         <th>Giảm (%)</th>
@@ -174,22 +180,66 @@
     @endphp
 
     <tr>
-        <td>{{ $c->code }}</td>
-        <td>{{ $c->discount }}%</td>
-        <td>{{ $c->quantity }}</td>
-        <td>{{ $c->expired_at }}</td>
+
+    <form method="POST"
+          action="/admin/coupons/update/{{ $c->id }}">
+        @csrf
 
         <td>
-            {{ $expired ? 'Hết hạn' : 'Còn hạn' }}
+            <strong>{{ $c->code }}</strong>
+        </td>
+
+        <td style="width:120px;">
+            <input type="number"
+                   name="discount"
+                   value="{{ $c->discount }}"
+                   class="form-control">
+        </td>
+
+        <td style="width:120px;">
+            <input type="number"
+                   name="quantity"
+                   value="{{ $c->quantity }}"
+                   class="form-control">
+        </td>
+
+        <td style="width:180px;">
+            <input type="date"
+                   name="expired_at"
+                   value="{{ \Carbon\Carbon::parse($c->expired_at)->format('Y-m-d') }}"
+                   class="form-control">
         </td>
 
         <td>
-            <form method="POST" action="/admin/coupons/delete/{{ $c->id }}">
+            @if($expired)
+                <span class="badge bg-danger">Hết hạn</span>
+            @elseif($c->status == 'active')
+                <span class="badge bg-success">Đang hoạt động</span>
+            @else 
+                <span class="badge bg-secondary">Chưa kích hoạt</span>
+            @endif
+        </td>
+
+        <td class="d-flex gap-2">
+
+            <button class="btn btn-primary btn-sm">
+                💾 Sửa
+            </button>
+
+    </form>
+
+            <form method="POST"
+                  action="/admin/coupons/delete/{{ $c->id }}">
                 @csrf
-                <button>Xóa</button>
+
+                <button class="btn btn-danger btn-sm">
+                    🗑 Xóa
+                </button>
             </form>
+
         </td>
-    </tr>
+
+</tr>
     @endforeach
 </table>
 
@@ -203,6 +253,16 @@ function toggleMenu(){
     let menu = document.getElementById('submenu');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
+</script>
+
+<script>
+setTimeout(function() {
+    let alert = document.querySelector('.alert');
+    if (alert) {
+        let bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    }
+}, 2500);
 </script>
 
 </body>

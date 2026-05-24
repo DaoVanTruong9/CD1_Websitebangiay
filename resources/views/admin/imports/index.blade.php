@@ -233,5 +233,15 @@ function toggleMenu(){
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 </script>
+
+<script>
+setTimeout(function() {
+    let alert = document.querySelector('.alert');
+    if (alert) {
+        let bsAlert = new bootstrap.Alert(alert);
+        bsAlert.close();
+    }
+}, 2500);
+</script>
 </body>
 </html>

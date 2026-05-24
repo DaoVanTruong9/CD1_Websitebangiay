@@ -105,23 +105,6 @@ class ProductController extends Controller
         return view('staff.inventory', compact('products'));
     }
 
-    // public function promotion()
-    // {
-    //     $products = Product::all();
-    //     return view('staff.promotion', compact('products'));
-    // }
-
-    // public function applyPromotion($id)
-    // {
-    //     $product = Product::find($id);
-
-    //     // giảm 10%
-    //     $product->price = $product->price * 0.9;
-    //     $product->save();
-
-    //     return back()->with('success', 'Đã áp dụng khuyến mãi');
-    // }
-
     public function userProducts(Request $request)
     {
         $query = Product::query();
@@ -157,7 +140,7 @@ class ProductController extends Controller
         });
     }
 
-        $products = Product::with('inventory')->paginate(12);
+        $products = $query->with(['inventory','reviews.user'])->paginate(12);
 
         // giữ query khi phân trang
         $products->appends($request->all());
@@ -229,6 +212,60 @@ class ProductController extends Controller
         return view('admin.reports.best_selling', compact('topProducts'));
     }
 
+    public function approveReturn($id)
+{
+    $return = ReturnRequest::with('orderItem.product.inventory')
+        ->findOrFail($id);
+
+    if ($return->status == 'approved') {
+        return back();
+    }
+
+    $inventory =
+        $return->orderItem->product->inventory;
+
+    $qty = $return->quantity;
+
+    // cộng kho lại
+    $inventory->quantity += $qty;
+
+    // giảm đã bán
+    $inventory->sold_quantity -= $qty;
+
+    if ($inventory->sold_quantity < 0) {
+        $inventory->sold_quantity = 0;
+    }
+
+    $inventory->updateStatus();
+
+    $inventory->save();
+
+    $return->status = 'approved';
+
+    $return->save();
+
+    return back()->with(
+        'success',
+        'Đã duyệt trả hàng'
+    );
+}
+
     
+    // public function promotion()
+    // {
+    //     $products = Product::all();
+    //     return view('staff.promotion', compact('products'));
+    // }
+
+    // public function applyPromotion($id)
+    // {
+    //     $product = Product::find($id);
+
+    //     // giảm 10%
+    //     $product->price = $product->price * 0.9;
+    //     $product->save();
+
+    //     return back()->with('success', 'Đã áp dụng khuyến mãi');
+    // }
 
 }

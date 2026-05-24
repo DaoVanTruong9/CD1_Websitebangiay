@@ -47,6 +47,7 @@ class AuthController extends Controller
         // PHÂN QUYỀN
         $role = Auth::user()->role;
 
+        
         if($role == 'admin'){
             return redirect('/admin/dashboard');
         }

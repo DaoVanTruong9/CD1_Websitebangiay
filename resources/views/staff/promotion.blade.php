@@ -115,27 +115,29 @@
                 {{ session('error') }}
             </div>
         @endif
-
+        
         <!-- FORM -->
-        <form method="POST" action="/staff/apply-coupon">
+        <form method="POST" action="/staff/promotion/apply">
             @csrf
 
             <div class="mb-3">
                 <label class="form-label">Chọn mã khuyến mãi</label>
-                <select name="coupon_id" class="form-select" required>
-                    <option value="">-- Chọn mã --</option>
-                    @foreach($coupons as $c)
-                        <option value="{{ $c->id }}">
-                            {{ $c->code }} - {{ $c->discount }}%
-                        </option>
-                    @endforeach
-                </select>
-            </div>
 
-            <button class="btn btn-warning w-100">
-                🏷️ Áp dụng mã
-            </button>
-        </form>
+            <select name="coupon_id" class="form-select"required>
+                <option value="">-- Chọn mã --</option>
+
+            @foreach($coupons as $c)
+                <option value="{{ $c->id }}"> {{ $c->code }} - {{ $c->discount }}%</option>
+            @endforeach
+
+        </select>
+    </div>
+
+    <button class="btn btn-warning w-100">
+        🏷️ Áp dụng mã
+    </button>
+
+</form>
 
     </div>
 
@@ -146,6 +148,55 @@ function toggleMenu() {
     let menu = document.getElementById("submenu");
     menu.classList.toggle("active");
 }
+</script>
+
+<script>
+function applyCoupon(){
+
+    let code =
+        document.getElementById('coupon_code').value;
+
+    fetch('/apply-coupon', {
+
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+
+        body: JSON.stringify({
+            code: code
+        })
+
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        let box =
+            document.getElementById('coupon-message');
+
+        if(data.success){
+
+            box.innerHTML = `
+                <div class="alert alert-success">
+                    Áp dụng mã ${data.code}
+                    thành công (-${data.discount}%)
+                </div>
+            `;
+            location.reload();
+        }else{
+            box.innerHTML = `
+                <div class="alert alert-danger">
+                    ${data.message}
+                </div>
+            `;
+        }
+
+    });
+
+}
+
 </script>
 
 </body>

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\OrderItem;
+use App\Models\Inventory;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -12,24 +15,27 @@ class DashboardController extends Controller
 public function index()
 {
     // ====== TỔNG QUAN ======
-    $totalOrders = \App\Models\Order::count();
-    $totalProducts = \App\Models\Product::count();
-    $totalCustomers = \App\Models\User::where('role', 'user')->count();
+    $totalOrders = Order::count();
 
-    $revenue = \App\Models\Order::where('status', 'completed')
+    $totalProducts = Product::count();
+
+    $totalCustomers = User::where('role', 'user')->count();
+
+    $revenue = Order::where('status', 'completed')
         ->where('payment_status', 'paid')
         ->sum('total_price');
 
     // ====== HÔM NAY ======
-    $todayOrders = \App\Models\Order::whereDate('created_at', today())->count();
+    $todayOrders = Order::whereDate('created_at', today())
+        ->count();
 
-    $todayRevenue = \App\Models\Order::whereDate('created_at', today())
+    $todayRevenue = Order::whereDate('created_at', today())
         ->where('status', 'completed')
         ->where('payment_status', 'paid')
         ->sum('total_price');
 
-    // ====== THEO THÁNG (CHART) ======
-    $monthlyRevenue = \App\Models\Order::where('status', 'completed')
+    // ====== DOANH THU THEO THÁNG ======
+    $monthlyRevenue = Order::where('status', 'completed')
         ->where('payment_status', 'paid')
         ->selectRaw('MONTH(created_at) as month, SUM(total_price) as total')
         ->groupBy('month')
@@ -37,15 +43,31 @@ public function index()
         ->pluck('total', 'month');
 
     // ====== TOP SẢN PHẨM ======
-    $topProducts = \App\Models\OrderItem::selectRaw('product_id, SUM(quantity) as total_sold')
+    $topProducts = OrderItem::selectRaw('product_id, SUM(quantity) as total_sold')
         ->groupBy('product_id')
         ->orderByDesc('total_sold')
+        ->with('product')
+        ->take(10)
+        ->get();
+
+    // ====== ĐƠN GẦN NHẤT ======
+    $latestOrders = Order::latest()
+        ->take(5)
+        ->get();
+
+    // ====== TRẠNG THÁI ĐƠN ======
+    $orderStatus = Order::selectRaw('status, COUNT(*) as total')
+        ->groupBy('status')
+        ->pluck('total', 'status');
+
+    // ====== TỒN KHO THẤP ======
+    $lowStockProducts = Inventory::where('quantity', '<', 10)
         ->with('product')
         ->take(5)
         ->get();
 
-    // ====== ĐƠN GẦN NHẤT ======
-    $latestOrders = \App\Models\Order::latest()->take(5)->get();
+    // ====== TỔNG TỒN KHO ======
+    $totalStock = Inventory::sum('quantity');
 
     return view('admin.dashboard', compact(
         'totalOrders',
@@ -56,8 +78,12 @@ public function index()
         'todayRevenue',
         'monthlyRevenue',
         'topProducts',
+        'orderStatus',
+        'lowStockProducts',
+        'totalStock',
         'latestOrders'
     ));
 }
+
 
 }

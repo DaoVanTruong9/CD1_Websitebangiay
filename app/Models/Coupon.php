@@ -12,7 +12,8 @@ class Coupon extends Model
         'code',
         'discount',
         'quantity',
-        'expired_at'
+        'expired_at',
+        'status'
     ];
 
     public $timestamps = false; 

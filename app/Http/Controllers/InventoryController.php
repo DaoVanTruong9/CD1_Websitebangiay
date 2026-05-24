@@ -20,4 +20,6 @@ class InventoryController extends Controller
         Inventory::findOrFail($id)->delete();
         return back()->with('success', 'Đã xoá tồn kho');
     }
+
+    
 }

@@ -15,6 +15,26 @@ public function index()
     return view('admin.coupons.index', compact('coupons'));
 }
 
+public function update(Request $request, $id)
+{
+    $coupon = Coupon::findOrFail($id);
+
+    $request->validate([
+        'discount' => 'required|numeric|min:1|max:100',
+        'quantity' => 'required|numeric|min:1',
+        'expired_at' => 'required|date'
+    ]);
+
+    $coupon->update([
+        'discount' => $request->discount,
+        'quantity' => $request->quantity,
+        'expired_at' => $request->expired_at
+    ]);
+
+    return redirect()->back()
+        ->with('success', 'Cập nhật mã thành công');
+}
+
 public function store(Request $request)
 {
     Coupon::create([
@@ -22,6 +42,7 @@ public function store(Request $request)
         'discount' => $request->discount,
         'quantity' => $request->quantity,
         'expired_at' => $request->expired_at,
+        'status' => 'inactive'
     ]);
 
     return back()->with('success', 'Tạo mã thành công');

@@ -130,46 +130,46 @@
             width: 100%;
             height: 10px;
         }
-.cart-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.order-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.cart-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
+        .cart-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .order-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-.cart-item img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
 
-.cart-item .info {
-    flex: 1;
-    margin-left: 10px;
-}
+        .cart-item .info {
+            flex: 1;
+            margin-left: 10px;
+        }
 
-.qty-btn {
-    border: none;
-    background: #eee;
-    padding: 2px 8px;
-    cursor: pointer;
-}
+        .qty-btn {
+            border: none;
+            background: #eee;
+            padding: 2px 8px;
+            cursor: pointer;
+        }     
 
-.remove-btn {
-    color: red;
-    cursor: pointer;
-    font-size: 14px;
-}
+        .remove-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -465,6 +465,26 @@
                             {{ number_format($p->price) }} đ
                         </p>
 
+                        @php
+                            $avg = round($p->reviews->avg('rating'), 1);
+                        @endphp
+
+                        <div class="mb-2">
+                            <b>Đánh giá:</b>
+
+                            @if($p->reviews->count() > 0)
+                                <span class="text-warning">⭐ {{ $avg }}/5
+                                </span>
+
+                            <small>
+                                ({{ $p->reviews->count() }} đánh giá)
+                            </small>
+
+                            @else
+                                <span class="text-muted"> Chưa có đánh giá </span>
+                            @endif
+                        </div>
+
                         <!-- COLOR -->
                         <div class="mb-2">
                             <label><b>Màu:</b></label>
@@ -493,17 +513,44 @@
                             <input type="number" id="qty{{ $p->id }}" value="1" min="1" class="form-control">
                         </div>
 
+                        <hr>
+                        <h6 class="fw-bold">Nhận xét khách hàng</h6>
+                        <div style="max-height:200px; overflow:auto;">
+                        @forelse($p->reviews as $r)
+
+                            <div class="border rounded p-2 mb-2">
+
+                                <div class="fw-bold">
+                                    {{ $r->user->name ?? 'Người dùng' }}
+                                </div>
+
+                                <div class="text-warning">
+                                    {{ str_repeat('⭐', $r->rating) }}
+                                </div>
+
+                                <small class="text-muted">
+                                    {{ $r->created_at->format('d/m/Y') }}
+                                </small>
+
+                                <div>{{ $r->comment }}</div>
+                            </div>
+                        @empty
+                            <div class="text-muted"> Chưa có đánh giá nào </div>
+
+                        @endforelse
+
+                        </div>      
+
                         <!-- ADD CART -->
                         @if($qty == 0)
-    <button class="btn btn-secondary mx-1" disabled>
-        <i class="fa fa-ban"></i> Hết hàng
-    </button>
-@else
-    <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
-        <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-    </button>
-@endif
-
+                            <button class="btn btn-secondary mx-1" disabled>
+                                <i class="fa fa-ban"></i> Hết hàng
+                            </button>
+                        @else
+                            <button class="btn btn-danger mx-1 add-to-cart" data-id="{{ $p->id }}">
+                                <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>

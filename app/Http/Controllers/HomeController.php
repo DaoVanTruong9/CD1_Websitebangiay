@@ -12,12 +12,12 @@ public function index(Request $request)
 {
     $query = Product::query();
 
-    // 🔍 SEARCH
+    // SEARCH
     if ($request->search) {
         $query->where('name', 'like', '%' . $request->search . '%');
     }
 
-    // 👟 FILTER SIZE (chuẩn)
+    // FILTER SIZE (chuẩn)
     if ($request->size) {
         $query->where(function ($q) use ($request) {
             foreach ($request->size as $size) {
@@ -26,12 +26,12 @@ public function index(Request $request)
         });
     }   
 
-    // 🏷️ FILTER BRAND
+    // FILTER BRAND
     if ($request->brand) {
         $query->whereIn('brand', $request->brand);
     }
 
-    // 💰 FILTER PRICE
+    // FILTER PRICE
     if ($request->min_price) {
         $query->where('price', '>=', $request->min_price);
     }
@@ -40,13 +40,13 @@ public function index(Request $request)
         $query->where('price', '<=', $request->max_price);
     }
 
-    // 👉 SALE
+    // SALE
     $products = (clone $query)
         ->where('is_sale', 1)
         ->take(10)
         ->get();
 
-    // 👉 FEATURED
+    // FEATURED
     $featured = (clone $query)
         ->where('is_featured', 1)
         ->take(10)
@@ -54,4 +54,5 @@ public function index(Request $request)
 
     return view('user.home', compact('products', 'featured'));
 }
+
 }

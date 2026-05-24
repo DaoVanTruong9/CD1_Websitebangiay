@@ -25,7 +25,10 @@
             background:#222;
             position:fixed;
         }
-
+        
+        .submenu.active {
+            max-height: 200px;
+        }
         .sidebar a{
             color:white;
             display:block;
@@ -38,6 +41,7 @@
         }
 
         .submenu{
+            padding-left: 20px;
             max-height:0;
             overflow:hidden;
             background:#333;
@@ -81,23 +85,14 @@
 
     <a href="/staff/dashboard">🏠 Dashboard</a>
 
-    <a href="javascript:void(0)" onclick="toggleMenu()">
-        📦 Xử lý đơn hàng
-    </a>
+    <a href="javascript:void(0)" onclick="toggleMenu()">📦 Xử lý đơn hàng</a>
+        
+        <div class="submenu active" id="submenu">
+            <a href="/staff/returns">🔄 Trả hàng</a>
+            <a href="/staff/exchanges" style="background: #2196f3">🔁 Đổi hàng</a>
 
-    <div class="submenu active" id="submenu">
-        <a href="/staff/returns" style="background:#444;">
-            🔄 Trả hàng
-        </a>
-
-        <a href="/staff/exchanges">
-            🔁 Đổi hàng
-        </a>
-
-        <a href="/staff/orders">
-            📦 Cập nhật đơn
-        </a>
-    </div>
+            <a href="/staff/orders">📦 Cập nhật đơn</a>
+        </div>
 
     <a href="/staff/inventory">📦 Kiểm tra tồn kho</a>
 
