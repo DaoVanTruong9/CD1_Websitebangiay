@@ -175,7 +175,6 @@
         <table class="table table-bordered">
             <thead class="table-dark">
                 <tr>
-                    <th>#</th>
                     <th>Tên</th>
                     <th>Email</th>
                     <th>Trạng thái</th>
@@ -186,7 +185,6 @@
             <tbody>
                 @foreach($users as $u)
                 <tr>
-                    <td>{{ $u->id }}</td>
                     <td>{{ $u->name }}</td>
                     <td>{{ $u->email }}</td>
 

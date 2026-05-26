@@ -250,22 +250,5 @@ class ProductController extends Controller
     );
 }
 
-    
-    // public function promotion()
-    // {
-    //     $products = Product::all();
-    //     return view('staff.promotion', compact('products'));
-    // }
-
-    // public function applyPromotion($id)
-    // {
-    //     $product = Product::find($id);
-
-    //     // giảm 10%
-    //     $product->price = $product->price * 0.9;
-    //     $product->save();
-
-    //     return back()->with('success', 'Đã áp dụng khuyến mãi');
-    // }
 
 }

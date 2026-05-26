@@ -10,20 +10,21 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::table('products', function (Blueprint $table) {
-        $table->boolean('is_sale')->default(0);
-        $table->boolean('is_featured')->default(0);
-    });
-}
+    {
+        Schema::create('test_results', function (Blueprint $table) {
+    $table->id();
+    $table->string('test_case');
+    $table->string('result');
+    $table->string('status');
+    $table->timestamps();
+});
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn(['is_sale', 'is_featured']);
-        });
+        Schema::dropIfExists('test_results');
     }
 };

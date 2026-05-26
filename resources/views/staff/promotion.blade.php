@@ -123,22 +123,81 @@
             <div class="mb-3">
                 <label class="form-label">Chọn mã khuyến mãi</label>
 
-            <select name="coupon_id" class="form-select"required>
-                <option value="">-- Chọn mã --</option>
+                <select name="coupon_id" class="form-select"required>
+                    <option value="">-- Chọn mã --</option>
+                    @foreach($coupons as $c)
+                        <option value="{{ $c->id }}"> {{ $c->code }} - {{ $c->discount }}%</option>
+                    @endforeach
+                </select>
+            </div>
 
-            @foreach($coupons as $c)
-                <option value="{{ $c->id }}"> {{ $c->code }} - {{ $c->discount }}%</option>
-            @endforeach
+            <button class="btn btn-warning w-100">🏷️ Áp dụng mã</button>
+        </form>
+        <hr class="my-4">
 
-        </select>
-    </div>
+<h5 class="mb-3">🎁 Mã khuyến mãi đang kích hoạt</h5>
 
-    <button class="btn btn-warning w-100">
-        🏷️ Áp dụng mã
-    </button>
+<table class="table table-bordered table-hover bg-white">
+    <thead class="table-warning">
+        <tr>
+            <th>Mã</th>
+            <th>Giảm giá</th>
+            <th>Số lượng</th>
+            <th>Hết hạn</th>
+            <th>Trạng thái</th>
+        </tr>
+    </thead>
 
-</form>
+    <tbody>
 
+    @forelse($coupons as $c)
+
+        @php
+            $expired = now()->gt($c->expired_at);
+        @endphp
+
+        @if(!$expired && $c->status == 'active')
+
+        <tr>
+            <td>
+                <strong class="text-primary">
+                    {{ $c->code }}
+                </strong>
+            </td>
+
+            <td>
+                {{ $c->discount }}%
+            </td>
+
+            <td>
+                {{ $c->quantity }}
+            </td>
+
+            <td>
+                {{ \Carbon\Carbon::parse($c->expired_at)->format('d/m/Y') }}
+            </td>
+
+            <td>
+                <span class="badge bg-success">
+                    Đang hoạt động
+                </span>
+            </td>
+        </tr>
+
+        @endif
+
+    @empty
+
+        <tr>
+            <td colspan="5" class="text-center text-muted">
+                Không có mã khuyến mãi nào
+            </td>
+        </tr>
+
+    @endforelse
+
+    </tbody>
+</table>
     </div>
 
 </div>

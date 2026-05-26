@@ -6,24 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
-{
-    Schema::table('products', function (Blueprint $table) {
-        $table->boolean('is_sale')->default(0);
-        $table->boolean('is_featured')->default(0);
-    });
-}
+    {
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('size')->nullable();
+        });
+    }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn(['is_sale', 'is_featured']);
+            $table->dropColumn('size');
         });
     }
 };

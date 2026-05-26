@@ -149,7 +149,7 @@
         <table class="table table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
+                    
                     <th>Sản phẩm</th>
                     <th>Số lượng</th>
                     <th>Giá nhập</th>
@@ -162,7 +162,7 @@
             <tbody>
                 @foreach($imports as $import)
                 <tr>
-                    <td>#{{ $import->id }}</td>
+                    
                     <td>{{ $import->product->name }}</td>
                     <td>{{ $import->quantity }}</td>
                     <td>{{ number_format($import->cost_price) }} đ</td>

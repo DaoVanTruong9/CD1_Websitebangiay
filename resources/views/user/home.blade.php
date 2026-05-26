@@ -158,85 +158,84 @@
             transition: all 0.8s cubic-bezier(.4,-0.3,1,.68);
             border-radius: 10px;
         }
-.dropdown-menu {
-    border-radius: 10px;
-}
+        .dropdown-menu {
+            border-radius: 10px;
+        }
 
-#mini-cart-body img {
-    border: 1px solid #eee;
-}
-.cart-wrapper {
-    position: relative;
-}
-.mini-cart {
-    position: absolute;
-    top: 90%;   
-    right: 0;
+        #mini-cart-body img {
+            border: 1px solid #eee;
+        }
+        .cart-wrapper {
+            position: relative;
+        }
+        .mini-cart {
+            position: absolute;
+            top: 90%;   
+            right: 0;
 
-    width: 350px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: 0.25s;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: 0.25s;
+            z-index: 999;
+        }
+        .mini-cart::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+        }
+        .cart-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .order-wrapper:hover .mini-cart {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-    z-index: 999;
-}
-    .mini-cart::before {
-    content: "";
-    position: absolute;
-    top: -10px;
-    left: 0;
-    width: 100%;
-    height: 10px;
-}
-.cart-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.order-wrapper:hover .mini-cart {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-.cart-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
 
-.cart-item img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
+        .cart-item .info {
+            flex: 1;
+            margin-left: 10px;
+        }
 
-.cart-item .info {
-    flex: 1;
-    margin-left: 10px;
-}
+        .qty-btn {
+            border: none;
+            background: #eee;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
 
-.qty-btn {
-    border: none;
-    background: #eee;
-    padding: 2px 8px;
-    cursor: pointer;
-}
+        .remove-btn {
+            color: red;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-.remove-btn {
-    color: red;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.product-card.opacity-50 {
-    pointer-events: none;
-}
+        .product-card.opacity-50 {
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -301,97 +300,80 @@
                 <!-- USER -->
                 @if(Auth::check())
 
-    <!-- ĐÃ LOGIN -->
-    <div class="dropdown">
+                    <!-- ĐÃ LOGIN -->
+                    <div class="dropdown">
 
-        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
-           data-bs-toggle="dropdown">
+                        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"data-bs-toggle="dropdown">
+                            <i class="fa fa-user me-2"></i>
+                                <span>{{ Auth::user()->name }}</span>
+                        </a>
 
-            <i class="fa fa-user me-2"></i>
-            <span>{{ Auth::user()->name }}</span>
-        </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
 
-        <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li>
+                            <button class="dropdown-item"data-bs-toggle="modal"data-bs-target="#accountModal">
+                                <i class="fa fa-user-circle me-2"></i>
+                                    Tài khoản
+                            </button>
+                        </li>
 
-            <li>
-                <button class="dropdown-item"
-                        data-bs-toggle="modal"
-                        data-bs-target="#accountModal">
+                    {{-- ADMIN --}}
+                    @if(Auth::user()->role === 'admin')
 
-                    <i class="fa fa-user-circle me-2"></i>
-                    Tài khoản
-                </button>
-            </li>
+                        <li>
+                            <a class="dropdown-item text-primary" href="/admin/dashboard">
 
-            {{-- ADMIN --}}
-            @if(Auth::user()->role === 'admin')
+                                <i class="fa fa-cog me-2"></i>
+                                    Quản trị
+                            </a>
+                        </li>
 
-                <li>
-                    <a class="dropdown-item text-primary"
-                       href="/admin/dashboard">
+                    @endif
 
-                        <i class="fa fa-cog me-2"></i>
-                        Quản trị
-                    </a>
-                </li>
+                    {{-- STAFF --}}
+                    @if(Auth::user()->role === 'staff')
 
-            @endif
+                    <li>
+                        <a class="dropdown-item text-warning" href="/staff/dashboard">
+                            <i class="fa fa-briefcase me-2"></i>
+                                Nhân viên
+                        </a>
+                    </li>
 
-            {{-- STAFF --}}
-            @if(Auth::user()->role === 'staff')
+                    @endif
 
-                <li>
-                    <a class="dropdown-item text-warning"
-                       href="/staff/dashboard">
+                    <li><hr class="dropdown-divider"></li>
 
-                        <i class="fa fa-briefcase me-2"></i>
-                        Nhân viên
-                    </a>
-                </li>
+                    <li>
+                        <form action="/logout" method="POST">
+                        @csrf
 
-            @endif
+                            <button class="dropdown-item text-danger">
+                                <i class="fa fa-sign-out-alt me-2"></i>
+                                    Đăng xuất
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
 
-            <li><hr class="dropdown-divider"></li>
+            @else
 
-            <li>
-                <form action="/logout" method="POST">
-                    @csrf
+            <!-- CHƯA LOGIN -->
+            <div class="d-flex align-items-center">
 
-                    <button class="dropdown-item text-danger">
+                <a href="/login" class="me-2 text-decoration-none fw-bold">
+                    <i class="fa fa-sign-in-alt"></i>
+                        Đăng nhập
+                </a>
+                <span>/</span>
 
-                        <i class="fa fa-sign-out-alt me-2"></i>
-                        Đăng xuất
-                    </button>
-                </form>
-            </li>
+                <a href="/register" class="ms-2 text-decoration-none fw-bold">
+                    Đăng ký
+                </a>
+            </div>
 
-        </ul>
-    </div>
-
-@else
-
-    <!-- CHƯA LOGIN -->
-    <div class="d-flex align-items-center">
-
-        <a href="/login"
-           class="me-2 text-decoration-none fw-bold">
-
-            <i class="fa fa-sign-in-alt"></i>
-            Đăng nhập
-        </a>
-
-        <span>/</span>
-
-        <a href="/register"
-           class="ms-2 text-decoration-none fw-bold">
-
-            Đăng ký
-        </a>
-
-    </div>
-
-@endif
-
+            @endif  
             </nav>
         </div>
         <!-- MODAL TÀI KHOẢN -->

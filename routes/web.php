@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
@@ -14,6 +16,9 @@ use App\Http\Controllers\ImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserController;
 use App\Models\Inventory;
+
+use App\Exports\TestResultsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +45,6 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
 
 // Route::middleware('auth')->group(function () {
 
-    // ================= LOGOUT =================
     Route::post('/logout', [AuthController::class, 'logout']);
 
     /*
@@ -153,4 +157,12 @@ Route::get('/san-pham', [ProductController::class, 'userProducts']);
         Route::get('/best-selling/export',[OrderController::class, 'exportBestSelling']);
 
     });
+    Route::get('/export-test-results', function () {
+        return Excel::download(new TestResultsExport,'test_results.xlsx');
+    });
 
+    Route::get('/test-db', function () {
+        return DB::connection('mysql_testing')
+            ->table('test_results')
+            ->get();
+    });

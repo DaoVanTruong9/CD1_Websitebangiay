@@ -280,7 +280,8 @@ public function checkout(Request $request)
             'order_id' => $order->id,
             'product_id' => $item['id'],
             'quantity' => $item['quantity'],
-            'price' => $item['price']
+            'price' => $item['price'],
+            'size' => $item['size']
         ]);
     }
 

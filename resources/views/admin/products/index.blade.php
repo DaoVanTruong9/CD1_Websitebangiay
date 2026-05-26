@@ -200,7 +200,7 @@
                         '{{ $p->brand }}',
                         {{ $p->price }},
                         '{{ $p->image }}',
-                        '{{ $p->size }}', // 👈 thêm
+                        '{{ $p->size }}', 
                         {{ $p->is_sale }},
                         {{ $p->is_featured }}
                     )">
@@ -208,7 +208,7 @@
                 </button>
 
                 <!-- ❌ DELETE -->
-                <form action="/products/delete/{{ $p->id }}" method="POST" style="display:inline;">
+                <form action="/admin/products/delete/{{ $p->id }}" method="POST" style="display:inline;">
                     @csrf
                     @method('DELETE')
                     <button class="btn btn-danger btn-sm"
@@ -228,7 +228,7 @@
 <!-- MODAL ADD -->
 <div class="modal fade" id="addModal">
     <div class="modal-dialog">
-        <form action="/products/store" method="POST" enctype="multipart/form-data" class="modal-content">
+        <form action="/admin/products/store" method="POST" enctype="multipart/form-data" class="modal-content">
             @csrf
 
             <div class="modal-body">
@@ -269,39 +269,37 @@
 <!-- MODAL EDIT -->
 <div class="modal fade" id="editModal">
     <div class="modal-dialog">
-        <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-content">
+        <form action="" id="editForm" method="POST" enctype="multipart/form-data" class="modal-content">
             @csrf
 
             <div class="modal-body">
+                <input id="editName" name="name" class="form-control mb-2">
+                <input id="editBrand" name="brand" class="form-control mb-2">
+                <div class="mb-2">
+                    <label>Chọn size</label><br>
 
-    <input id="editName" name="name" class="form-control mb-2">
+                    @for($i = 38; $i <= 43; $i++)
+                        <label class="me-2">
+                            <input type="checkbox" class="edit-size" name="size[]" value="{{ $i }}"> {{ $i }}
+                        </label>
+                    @endfor
+                </div>
+                <input id="editPrice" name="price" class="form-control mb-2">
 
-    <input id="editBrand" name="brand" class="form-control mb-2">
-    <div class="mb-2">
-        <label>Chọn size</label><br>
+                <!-- nhập lại tên ảnh -->
+                <input id="editImage" name="image" class="form-control mb-2" placeholder="nike1.jpg">
 
-        @for($i = 38; $i <= 43; $i++)
-            <label class="me-2">
-                <input type="checkbox" class="edit-size" name="size[]" value="{{ $i }}"> {{ $i }}
-            </label>
-        @endfor
-    </div>
-    <input id="editPrice" name="price" class="form-control mb-2">
-
-    <!-- nhập lại tên ảnh -->
-    <input id="editImage" name="image" class="form-control mb-2" placeholder="nike1.jpg">
-
-    <!-- preview -->
-    <img id="editImagePreview" style="width:100px">
-    <div class="mb-2">
-    <label>Loại hiển thị</label>
-    <select id="editDisplay" name="display_type" class="form-control">
-        <option value="none">Không hiển thị</option>
-        <option value="sale">Khuyến mãi</option>
-        <option value="featured">Nổi bật</option>
-    </select>
-</div>
-</div>
+                <!-- preview -->
+                <img id="editImagePreview" style="width:100px">
+                <div class="mb-2">
+                    <label>Loại hiển thị</label>
+                    <select id="editDisplay" name="display_type" class="form-control">
+                        <option value="none">Không hiển thị</option>
+                        <option value="sale">Khuyến mãi</option>
+                        <option value="featured">Nổi bật</option>
+                    </select>
+                </div>
+            </div>
 
             <div class="modal-footer">
                 <button class="btn btn-primary">Cập nhật</button>
@@ -371,5 +369,51 @@ function toggleMenu(){
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 </script>
+<script>
+function editProduct(id, name, brand, price, image, size, is_sale, is_featured)
+{
+    document.getElementById('editForm').action =
+        '/admin/products/update/' + id;
+
+    document.getElementById('editName').value = name;
+    document.getElementById('editBrand').value = brand;
+    document.getElementById('editPrice').value = price;
+    document.getElementById('editImage').value = image;
+
+    document.getElementById('editImagePreview').src =
+        '/images/' + image;
+
+    // reset size
+    document.querySelectorAll('.edit-size').forEach(item => {
+        item.checked = false;
+    });
+
+    // checked size
+    if(size){
+        let sizes = size.split(',');
+
+        document.querySelectorAll('.edit-size').forEach(item => {
+            if(sizes.includes(item.value)){
+                item.checked = true;
+            }
+        });
+    }
+
+    // display type
+    if(is_sale == 1){
+        document.getElementById('editDisplay').value = 'sale';
+    }
+    else if(is_featured == 1){
+        document.getElementById('editDisplay').value = 'featured';
+    }
+    else{
+        document.getElementById('editDisplay').value = 'none';
+    }
+
+    // show modal
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+</script>
+
 </body>
 </html>

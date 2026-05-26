@@ -113,7 +113,6 @@
         <table class="table table-bordered table-hover">
             <thead class="table-dark text-center">
                 <tr>
-                    <th>ID</th>
                     <th>Khách hàng</th>
                     <th>SĐT</th>
                     <th>Địa chỉ</th>
@@ -128,7 +127,6 @@
             <tbody>
                 @foreach($orders as $o)
                 <tr class="align-middle">
-                    <td>{{ $o->id }}</td>
                     <td>{{ $o->customer_name }}</td>
                     <td>{{ $o->phone }}</td>
                     <td>{{ $o->address }}</td>
@@ -143,11 +141,11 @@
                     <td class="text-center">
                         @if($o->payment_method == 'bank' && $o->payment_status == 'pending')
                             <form action="/orders/confirm-payment/{{ $o->id }}" method="POST">
-        @csrf
-        <button class="btn btn-sm btn-success">
-            Xác nhận đã thanh toán
-        </button>
-    </form>
+                                @csrf
+                                <button class="btn btn-sm btn-success">
+                                    Xác nhận đã thanh toán
+                                </button>
+                            </form>
                         @endif
                         @if($o->status == 'pending')
                             <span class="status pending">Chờ xử lý</span>

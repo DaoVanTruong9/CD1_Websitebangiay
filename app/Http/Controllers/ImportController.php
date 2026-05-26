@@ -29,12 +29,32 @@ class ImportController extends Controller
         $total = $request->quantity * $request->cost_price;
 
         // 1. lưu phiếu nhập
-        Import::create([
-            'product_id' => $request->product_id,
-            'quantity' => $request->quantity,
-            'cost_price' => $request->cost_price,
-            'total_cost' => $total,
-        ]);
+        // 1. kiểm tra đã có phiếu nhập của sản phẩm chưa
+$import = Import::where('product_id', $request->product_id)->first();
+
+if ($import) {
+
+    // nếu đã có -> cộng thêm số lượng
+    $import->quantity += $request->quantity;
+
+    // cập nhật giá nhập mới
+    $import->cost_price = $request->cost_price;
+
+    // cập nhật tổng tiền
+    $import->total_cost = $import->quantity * $request->cost_price;
+
+    $import->save();
+
+} else {
+
+    // chưa có -> tạo mới
+    Import::create([
+        'product_id' => $request->product_id,
+        'quantity' => $request->quantity,
+        'cost_price' => $request->cost_price,
+        'total_cost' => $total,
+    ]);
+}
 
         // 2. cập nhật inventory
         $inventory = Inventory::firstOrCreate(

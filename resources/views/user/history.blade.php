@@ -274,43 +274,42 @@
                     @if(Auth::check())
                     <div class="dropdown">
 
-        <!-- ĐÃ LOGIN -->
-        <a class="d-flex align-items-center text-decoration-none dropdown-toggle"
-           data-bs-toggle="dropdown">
-            <i class="fa fa-user me-2"></i>
-            <span>{{ Auth::user()->name }}</span>
-        </a>
+                        <!-- ĐÃ LOGIN -->
+                        <a class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="fa fa-user me-2"></i>
+                                <span>{{ Auth::user()->name }}</span>
+                        </a>
 
-        <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
 
-            <li>
-                <a class="dropdown-item" href="#">
-                    <i class="fa fa-user-circle me-2"></i> Tài khoản
-                </a>
-            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fa fa-user-circle me-2"></i> Tài khoản
+                                </a>
+                            </li>
 
-            <li><hr class="dropdown-divider"></li>
+                            <li><hr class="dropdown-divider"></li>
 
-            <li>
-                <form action="/logout" method="POST">
-                    @csrf
-                    <button class="dropdown-item text-danger">
-                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
-                    </button>
-                </form>
-            </li>
-        </ul>
+                            <li>
+                                <form action="/logout" method="POST">
+                                    @csrf
+                                    <button class="dropdown-item text-danger">
+                                        <i class="fa fa-sign-out-alt me-2"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
 
-    @else
+                    @else
 
-        <!-- CHƯA LOGIN -->
-        <div>
-            <a href="/login" class="me-2 text-decoration-none">Đăng nhập</a>
-            <a href="/register" class="text-decoration-none">Đăng ký</a>
-        </div>
+                        <!-- CHƯA LOGIN -->
+                        <div>
+                            <a href="/login" class="me-2 text-decoration-none">Đăng nhập</a>
+                            <a href="/register" class="text-decoration-none">Đăng ký</a>
+                        </div>
 
-    @endif
-</div>
+                        @endif
+                    </div>
                 </div>
 
             </div>
@@ -337,7 +336,18 @@
                 <span class="status paid">Hoàn thành</span>
             @elseif($order->status == 'shipping')
                 <span class="status paid">Đang giao</span>
-            @elseif($order->status == 'returned')
+            
+                @elseif($order->status == 'pending_return')
+                    <span class="status bg-warning text-dark px-2 py-1 rounded">
+                        Chờ trả hàng
+                    </span>
+
+                @elseif($order->status == 'pending_exchange')
+                    <span class="status bg-info text-white px-2 py-1 rounded">
+                        Chờ đổi hàng
+                    </span>
+
+                @elseif($order->status == 'returned')
                 <span class="status bg-danger text-white px-2 py-1 rounded">
                     Đã trả hàng
                 </span> 
@@ -366,10 +376,12 @@
         <div class="d-flex align-items-center">
             <img src="{{ asset('images/' . ($item->product->image ?? '')) }}">
             <div>
-                <div class="fw-bold">
-                    {{ $item->product->name ?? 'Sản phẩm' }}
+                <div class="fw-bold"> {{ $item->product->name ?? 'Sản phẩm' }}
                 </div>
-                <small>x{{ $item->quantity }}</small>
+                    <small class="text-muted d-block">
+                        Size: {{ $item->size ?? 'N/A' }}
+                    </small>
+                    <small>x{{ $item->quantity }}</small>
             </div>
         </div>
 
@@ -438,7 +450,7 @@
 
 </div>
 
-<!-- MODAL (CHỈ 1 CÁI DUY NHẤT) -->
+<!-- MODAL -->
 <div class="modal fade" id="reviewModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -478,6 +490,7 @@
         </div>
     </div>
 </div>
+<!-- Modal đổi trả--> 
 <div class="modal fade" id="returnModal">
 
     <div class="modal-dialog">
@@ -499,17 +512,11 @@
 
                 <div class="modal-body">
 
-                    <input type="hidden"
-                           name="order_id"
-                           id="return-order">
-
-                    <input type="hidden"
-                           name="product_id"
-                           id="return-product">
-
+                    <input type="hidden" name="order_id" id="return-order">
+                    <input type="hidden" name="product_id" id="return-product">
                     <label>Loại yêu cầu</label>
 
-                    <select name="type" class="form-control mb-3">
+                    <select name="type" class="form-control mb-3" id="request-type">
                         <option value="return">Trả hàng</option>
                         <option value="exchange">Đổi hàng</option>
                     </select>
@@ -518,7 +525,17 @@
                               class="form-control"
                               placeholder="Nhập lý do..."
                               required></textarea>
+                    <div id="exchange-info" style="display:none;">
 
+    <label class="mt-3">
+        Thông tin sản phẩm muốn đổi
+    </label>
+
+    <textarea name="exchange_product"
+              class="form-control"
+              placeholder="Ví dụ: Size 42, màu trắng..."></textarea>
+
+</div>
                 </div>
 
                 <div class="modal-footer">
@@ -532,6 +549,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -548,8 +566,18 @@ returnModal.addEventListener('show.bs.modal', function (event) {
     document.getElementById('return-order').value = orderId;
     document.getElementById('return-product').value = productId;
 
-    // tự chọn loại
-    document.querySelector('select[name="type"]').value = type;
+    const typeSelect = document.querySelector('select[name="type"]');
+
+typeSelect.value = type;
+
+// hiện / ẩn form đổi hàng
+let box = document.getElementById('exchange-info');
+
+if (type == 'exchange') {
+    box.style.display = 'block';
+} else {
+    box.style.display = 'none';
+}
 });
 </script>
 
@@ -565,6 +593,22 @@ reviewModal.addEventListener('show.bs.modal', function (event) {
     document.getElementById('review-product').value = productId;
     document.getElementById('review-order').value = orderId;
 });
+</script>
+
+<script>
+
+document.getElementById('request-type')
+    .addEventListener('change', function () {
+
+    let box = document.getElementById('exchange-info');
+
+    if (this.value == 'exchange') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+});
+
 </script>
 
 </body>

@@ -194,7 +194,7 @@
                     <a class="nav-link" href="/san-pham">Sản phẩm</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active fw-bold text-danger" href="/orders">Đơn hàng</a>
+                    <a class="nav-link active fw-bold text-danger" href="/orders/my">Đơn hàng</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="/orders/history">Lịch sử</a>
@@ -349,10 +349,13 @@
             <!-- ITEMS -->
             @foreach($order->items as $item)
             <div class="d-flex justify-content-between">
-                <span>
-                    {{ $item->product->name ?? 'Sản phẩm' }} 
+                <div>{{ $item->product->name ?? 'Sản phẩm' }}
                     x{{ $item->quantity }}
-                </span>
+                </div>
+
+                <small class="text-muted">
+                    Size: {{ $item->size ?? 'N/A' }}
+                </small>
                 <span>
                     {{ number_format($item->price * $item->quantity) }} đ
                 </span>

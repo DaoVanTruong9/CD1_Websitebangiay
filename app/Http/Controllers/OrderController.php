@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
+
     public function index()
     {
         $orders = Order::latest()->get();
@@ -23,21 +24,21 @@ class OrderController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-{
-    $order = Order::with('items.product.inventory')->findOrFail($id);
+    {
+        $order = Order::with('items.product.inventory')->findOrFail($id);
 
-    $new = $request->status;
-    $current = $order->status;
+        $new = $request->status;
+        $current = $order->status;
 
-    $flow = [
-        'pending' => ['confirmed', 'cancelled'],
-        'confirmed' => ['shipping', 'cancelled'],
-        'shipping' => ['completed'],
-    ];
+        $flow = [
+            'pending' => ['confirmed', 'cancelled'],
+            'confirmed' => ['shipping', 'cancelled'],
+            'shipping' => ['completed'],
+        ];
 
-    if (!isset($flow[$current]) || !in_array($new, $flow[$current])) {
-        return back()->with('error', 'Chuyển trạng thái không hợp lệ');
-    }
+        if (!isset($flow[$current]) || !in_array($new, $flow[$current])) {
+            return back()->with('error', 'Chuyển trạng thái không hợp lệ');
+        }
 
     /*
     |--------------------------------------------------------------------------
@@ -183,7 +184,7 @@ class OrderController extends Controller
 
             'status' => 'pending',
             'payment_method' => $request->payment ?? 'cod',
-            'payment_status' => $request->payment == 'bank' ? 'pending' : 'cod'
+            'payment_status' => $request->payment == 'bank' ? 'pending' : 'unpaid'
         ]);
 
         foreach ($cart as $item) {
@@ -191,7 +192,8 @@ class OrderController extends Controller
                'order_id' => $order->id,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $item['price']
+                'price' => $item['price'],
+                'size' => $item['size'] ?? null
             ]);
         }
 
@@ -281,6 +283,8 @@ class OrderController extends Controller
         }
 
         $order->payment_status = 'paid';
+        $order->status = 'confirmed';
+
         $order->save();
 
         return back()->with('success','Đã xác nhận thanh toán');
@@ -289,7 +293,6 @@ class OrderController extends Controller
     public function confirmOrder($id)
 {
 
-    
     $order = Order::with('items.product.inventory')
         ->findOrFail($id);
 
@@ -406,7 +409,12 @@ class OrderController extends Controller
         'items.product.reviews'
     ])
     ->where('user_id', auth()->id())
-    ->where('status', 'completed')
+    ->whereIn('status', [
+    'completed',
+    'pending_return',
+    'pending_exchange',
+    'returned',
+    'exchange'])
     ->latest()
     ->get();
 
@@ -509,7 +517,15 @@ class OrderController extends Controller
             'reason' => $request->reason,
             'status' => 'pending'
         ]);
+        $order = Order::find($request->order_id);
 
+        if ($request->type == 'return') {
+            $order->status = 'pending_return';
+        } else {
+            $order->status = 'pending_exchange';
+        }
+
+        $order->save();
         return back()->with('success', 'Đã gửi yêu cầu thành công');
     }
 
@@ -587,10 +603,5 @@ class OrderController extends Controller
         return Excel::download(new BestSellingExport,'san_pham_ban_chay.xlsx');
     }
 
-    // public function paymentSuccess($id)
-    // {
-    //     return redirect('/orders/my')
-    //         ->with('success', 'Đặt hàng thành công, vui lòng chờ xác nhận thanh toán');
-    // }
 
 }
